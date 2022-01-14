@@ -33,6 +33,8 @@ jobs:
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
     - name: Run test suite
+      env:
+        XDEBUG_MODE: coverage
 #      env:
 #        global:
 #          - XDEBUG_MODE=coverage
@@ -51,12 +53,13 @@ jobs:
 #        CI_NAME: 'github'
 #        CI_JOB_ID: '1696835671'
 #        CI_BRANCH: 'dev'
-      run: |
-        php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit
-#        php vendor/bin/php-coveralls -vvv
+      run: php vendor/phpunit/phpunit/phpunit
+#        php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit
 
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
+      - name: Upload coverage results to Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: |
+          composer global require php-coveralls/php-coveralls
+          php-coveralls --coverage_clover=build/logs/clover.xml -v
 
