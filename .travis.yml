@@ -30,15 +30,13 @@ matrix:
     - php: 7.2 # Too Old
     - php: 7.3 # Too Old
     - php: 7.4 # Too Old
-    - php: 8.0 # Too Old
+    - php: 8.1 # Too New
 
 # Build Script. Notice: We are demanding unit to generate a clover file to our previously created folder
 script:
   # Syntax: phpunit --coverage-clover <folder>/<name>.xml --text-suffix .php [--colors] [--report-useless-tests] <tests location>.php
   - phpunit --coverage-clover build/logs/clover.xml --test-suffix .php --colors --report-useless-tests tests/test.php
-  # - php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit --coverage-text
 
 # After success, run sh to bind coveralls
 after_script:
   - php vendor/bin/coveralls -v
-  # - php vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover
