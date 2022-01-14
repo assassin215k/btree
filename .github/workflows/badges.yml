@@ -37,6 +37,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
         echo ${{ secrets.COVERALLS_REPO_TOKEN }}
+        echo ${{ secrets.COVERALLS_REPO_TOKEN2 }}
+        echo ${{ env.COVERALLS_REPO_TOKEN }}
+        echo ${{ env.COVERALLS_REPO_TOKEN2 }}
         php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit
-        php vendor/bin/php-coveralls -vvv
+        COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_REPO_TOKEN }} php vendor/bin/php-coveralls -vvv
 
