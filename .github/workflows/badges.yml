@@ -40,9 +40,9 @@ jobs:
       run: |
         composer global require php-coveralls/php-coveralls
         php vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
-
-
-    - name: Upload Scrutinizer coverage
-      uses: sudo-bot/action-scrutinizer@latest
-      with:
-        cli-args: "--format=php-clover build/logs/clover.xml"
+#
+#
+#    - name: Upload Scrutinizer coverage
+#      uses: sudo-bot/action-scrutinizer@latest
+#      with:
+#        cli-args: "--format=php-clover build/logs/clover.xml"
