@@ -33,6 +33,9 @@ jobs:
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
     - name: Run test suite
+      env:
+        GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME
+        GITHUB_RUN_ID: $GITHUB_RUN_ID
       run: |
         php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit
         php vendor/bin/php-coveralls -vvv
