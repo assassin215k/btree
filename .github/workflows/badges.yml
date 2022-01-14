@@ -35,6 +35,5 @@ jobs:
     - name: Run test suite
       run: |
         php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit
-        export COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_REPO_TOKEN }}
-        php vendor/bin/php-coveralls -vvv
+        COVERALLS_REPO_TOKEN=5gxgyrWG1fva0ZgzKWS67dyJxUtXSdgrq php vendor/bin/php-coveralls -vvv
 
