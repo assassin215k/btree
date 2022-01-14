@@ -33,10 +33,16 @@ jobs:
         XDEBUG_MODE: coverage
       run: php vendor/phpunit/phpunit/phpunit
 
-    - name: Upload coverage results to Coveralls
+    - name: Upload coverage results to coveralls.io
       env:
         COVERALLS_RUN_LOCALLY: 1
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
       run: |
         composer global require php-coveralls/php-coveralls
         php vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+#
+#
+#    - name: Upload Scrutinizer coverage
+#      uses: sudo-bot/action-scrutinizer@latest
+#      with:
+#        cli-args: "--format=php-clover build/logs/clover.xml"
