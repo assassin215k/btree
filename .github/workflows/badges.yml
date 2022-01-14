@@ -2,13 +2,12 @@ name: PHP Composer
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ maser, dev ]
   pull_request:
     branches: [ dev ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -32,31 +31,7 @@ jobs:
     - name: Run test suite
       env:
         XDEBUG_MODE: coverage
-#      env:
-#        global:
-#          - XDEBUG_MODE=coverage
-#          - COVERALLS_REPO_TOKEN=${{ secret.COVERALLS_REPO_TOKEN }}
-#        GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME
-#        GITHUB_RUN_ID: $GITHUB_RUN_ID
-
-#        GITHUB_REF:
-#        GITHUB_ACTIONS:
-#        GITHUB_RUN_ID: $CI_JOB_ID
-#        GITHUB_EVENT_NAME:
-#        COVERALLS_REPO_TOKEN:
-#
-#        GITHUB_ACTIONS: 'true'
-#        GITHUB_REF: 'refs/heads/dev'
-#        CI_NAME: 'github'
-#        CI_JOB_ID: '1696835671'
-#        CI_BRANCH: 'dev'
       run: php vendor/phpunit/phpunit/phpunit
-#        php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit
-
-#    - name: Coveralls
-#      uses: coverallsapp/github-action@master
-#      with:
-#        github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
     - name: Upload coverage results to Coveralls
       env:
@@ -65,4 +40,3 @@ jobs:
       run: |
         composer global require php-coveralls/php-coveralls
         php vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
-
