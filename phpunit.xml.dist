@@ -23,7 +23,7 @@
         </include>
         <report>
             <html outputDirectory="build" lowUpperBound="50" highLowerBound="90"/>
-            <clover outputFile="build/clover.xml"/>
+            <clover outputFile="build/logs/clover.xml"/>
         </report>
     </coverage>
 </phpunit>
