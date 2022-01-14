@@ -2,7 +2,7 @@
 
 All Notable changes to `assassin215k/btree` will be documented in this file
 
-## NEXT - YYYY-MM-DD
+## 0.0.1 - 2022-01-14
 
 ### Added
 - Nothing
