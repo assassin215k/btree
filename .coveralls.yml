@@ -1,3 +1,4 @@
+# https://habr.com/ru/post/537088/ read about Scrutinizer installation
 # Set folder to clover (must be the same on travis)
 coverage_clover: build/logs/clover.xml
 # Same folder here
