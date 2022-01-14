@@ -19,5 +19,6 @@ class BtreeTest extends TestCase
     {
         $btree = new Btree();
         $this->assertSame('testme', $btree->echoPhrase('testme'));
+        $this->assertTrue(true);
     }
 }
