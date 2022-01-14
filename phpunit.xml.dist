@@ -24,7 +24,6 @@
         <report>
             <html outputDirectory="build" lowUpperBound="50" highLowerBound="90"/>
             <clover outputFile="build/logs/clover.xml"/>
-            <php outputFile="build/logs/coverage.clover"/>
         </report>
     </coverage>
 </phpunit>
