@@ -33,10 +33,30 @@ jobs:
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
     - name: Run test suite
-      env:
-        GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME
-        GITHUB_RUN_ID: $GITHUB_RUN_ID
+#      env:
+#        global:
+#          - XDEBUG_MODE=coverage
+#          - COVERALLS_REPO_TOKEN=${{ secret.COVERALLS_REPO_TOKEN }}
+#        GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME
+#        GITHUB_RUN_ID: $GITHUB_RUN_ID
+
+#        GITHUB_REF:
+#        GITHUB_ACTIONS:
+#        GITHUB_RUN_ID: $CI_JOB_ID
+#        GITHUB_EVENT_NAME:
+#        COVERALLS_REPO_TOKEN:
+#
+#        GITHUB_ACTIONS: 'true'
+#        GITHUB_REF: 'refs/heads/dev'
+#        CI_NAME: 'github'
+#        CI_JOB_ID: '1696835671'
+#        CI_BRANCH: 'dev'
       run: |
         php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit
-        php vendor/bin/php-coveralls -vvv
+#        php vendor/bin/php-coveralls -vvv
+
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
