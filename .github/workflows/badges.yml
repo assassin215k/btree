@@ -36,6 +36,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
+        echo ${{ secrets.COVERALLS_REPO_TOKEN }}
         php -dxdebug.mode=coverage vendor/phpunit/phpunit/phpunit
-        php vendor/bin/php-coveralls
+        php vendor/bin/php-coveralls -vvv
 
