@@ -2,7 +2,7 @@
 
 namespace Btree\Algorithm;
 
-use Btree\IndexedCollectionInterface;
+use Btree\Node\Node;
 use Btree\Node\NodeInterface;
 
 /**
@@ -14,10 +14,20 @@ use Btree\Node\NodeInterface;
  */
 class Btree implements AlgorithmInterface
 {
-    private NodeInterface $rootNode;
-
     public function createIndex(string|array $fieldName): self
     {
         return $this;
+    }
+
+    public function addItem(mixed &$cache, array $fields, object $item): void
+    {
+    }
+
+    /**
+     * @return NodeInterface
+     */
+    public function getCache(): NodeInterface
+    {
+        return new Node();
     }
 }

@@ -4,6 +4,7 @@ require_once 'vendor/autoload.php';
 
 use Btree\Algorithm\IndexAlgorithm;
 use Btree\IndexedCollection;
+use Btree\SortOrder\IndexSortOrder;
 
 interface IPerson
 {
@@ -42,7 +43,9 @@ $data = [
 ];
 
 $collection = new IndexedCollection($data);
-$collection->addIndex('name', IndexAlgorithm::BTREE);
+//$collection->addIndex('name', IndexAlgorithm::BTREE);
 
-//var_dump($collection);
+$collection->addSortBy('name', IndexSortOrder::DESC);
+
+var_dump($collection);
 echo "ok","\n";
