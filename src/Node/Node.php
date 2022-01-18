@@ -2,6 +2,8 @@
 
 namespace Btree\Node;
 
+use Countable;
+
 /**
  * Class Node
  *
@@ -9,6 +11,22 @@ namespace Btree\Node;
  */
 class Node implements NodeInterface
 {
-    private array $children = [];
-    private ?NodeInterface $parent;
+    public ?NodeInterface $prevNode = null;
+    public ?NodeInterface $nextNode = null;
+    public ?NodeInterface $parent = null;
+
+    public array $list;
+
+    /**
+     * @var NodeInterface[]|null
+     */
+    private ?array $children = null;
+
+    /**
+     * @return int
+     */
+    public function isList(): int
+    {
+        return count($this->list) > 1;
+    }
 }

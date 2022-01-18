@@ -3,6 +3,7 @@
 namespace Btree\Exception;
 
 use Btree\Algorithm\AlgorithmInterface;
+use Btree\Index\IndexInterface;
 use Exception;
 
 /**
@@ -19,6 +20,6 @@ class WrongClassException extends Exception
      */
     public function __construct(string $algorithmClass)
     {
-        parent::__construct(sprintf($this->message, AlgorithmInterface::class, $algorithmClass));
+        parent::__construct(sprintf($this->message, IndexInterface::class, $algorithmClass));
     }
 }

@@ -43,9 +43,9 @@ $data = [
 ];
 
 $collection = new IndexedCollection($data);
-//$collection->addIndex('name', IndexAlgorithm::BTREE);
+$collection->addIndex('name');
 
-$collection->addSortBy('name', IndexSortOrder::DESC);
-
-var_dump($collection);
+//$collection->addSortBy('name', IndexSortOrder::DESC);
+//$collection->add(new Person('Alex', 31));
+//var_dump($collection);
 echo "ok","\n";

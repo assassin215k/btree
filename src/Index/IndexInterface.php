@@ -11,7 +11,7 @@ namespace Btree\Index;
  */
 interface IndexInterface
 {
-    public function add(object $value): void;
+    public function insert(object $value): void;
 
     public function search(string $value): array;
 }

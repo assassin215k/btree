@@ -2,6 +2,8 @@
 
 namespace Btree\Algorithm;
 
+use Btree\Index\BtreeIndex;
+
 /**
  * Enum IndexAlgorithm
  *
@@ -13,10 +15,10 @@ enum IndexAlgorithm
 {
     case BTREE;
 
-    public static function getAlgorithm(self $value): string
+    public static function getIndexClass(self $value): string
     {
         return match ($value) {
-            IndexAlgorithm::BTREE => Btree::class,
+            IndexAlgorithm::BTREE => BtreeIndex::class,
         };
     }
 }

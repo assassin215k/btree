@@ -9,9 +9,9 @@ namespace Btree\Helper;
  *
  * @package assassin215k/btree
  */
-class Index
+class IndexHelper
 {
-    public static function getIndex(string|array $fieldName): string
+    public static function getIndexName(string|array $fieldName): string
     {
         return is_array($fieldName) ? join('-', $fieldName) : $fieldName;
     }

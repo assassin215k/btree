@@ -2,12 +2,12 @@
 
 namespace Btree;
 
-use Btree\Algorithm\AlgorithmInterface;
 use Btree\Algorithm\IndexAlgorithm;
 use Btree\Exception\IndexDuplicationException;
 use Btree\Exception\IndexMissingException;
 use Btree\Exception\WrongClassException;
-use Btree\Helper\Index;
+use Btree\Helper\IndexHelper;
+use Btree\Index\IndexInterface;
 use Btree\SortOrder\IndexSortOrder;
 
 /**
@@ -20,7 +20,7 @@ use Btree\SortOrder\IndexSortOrder;
 class IndexedCollection implements IndexedCollectionInterface
 {
     /**
-     * @var Index[]
+     * @var IndexInterface[]
      */
     private array $indexes = [];
 
@@ -34,7 +34,7 @@ class IndexedCollection implements IndexedCollectionInterface
      *
      * @param array $data to store original data
      */
-    public function __construct(private readonly array $data)
+    public function __construct(private array $data)
     {
     }
 
@@ -46,28 +46,24 @@ class IndexedCollection implements IndexedCollectionInterface
      * @throws IndexDuplicationException
      * @throws WrongClassException
      */
-    public function addIndex(
-        string|array $fieldName,
-        IndexAlgorithm $algorithm = IndexAlgorithm::BTREE,
-        bool $replace = true
-    ): void {
-        $algorithmClass = IndexAlgorithm::getAlgorithm($algorithm);
-        $algorithm = new $algorithmClass();
-
-        if (!$algorithm instanceof AlgorithmInterface) {
-            throw new WrongClassException($algorithm::class);
-        }
-
-        $indexKey = Index::getIndex($fieldName);
-
-        if (!$replace && key_exists($indexKey, $this->indexes)) {
+    public function addIndex(string|array $fieldName, IndexAlgorithm $algorithm = IndexAlgorithm::BTREE): void
+    {
+        $indexKey = IndexHelper::getIndexName($fieldName);
+        if (key_exists($indexKey, $this->indexes)) {
             throw new IndexDuplicationException($indexKey);
         }
 
-        $this->indexes[$indexKey] = $algorithm->createIndex($fieldName);
+        $indexClass = IndexAlgorithm::getIndexClass($algorithm);
+        $index = new $indexClass($fieldName);
+
+        if (!$index instanceof IndexInterface) {
+            throw new WrongClassException($algorithm::class);
+        }
+
+        $this->indexes[$indexKey] = $index;
 
         foreach ($this->data as $item) {
-            $algorithm->addItem($item);
+            $index->insert($item);
         }
     }
 
@@ -80,7 +76,7 @@ class IndexedCollection implements IndexedCollectionInterface
      */
     public function dropIndex(string|array $fieldName): void
     {
-        $indexKey = Index::getIndex($fieldName);
+        $indexKey = IndexHelper::getIndexName($fieldName);
 
         if (!key_exists($indexKey, $this->indexes)) {
             throw new IndexMissingException($indexKey);
@@ -120,7 +116,11 @@ class IndexedCollection implements IndexedCollectionInterface
         return [];
     }
 
-    public function add(object $data): void
+    public function add(object $item): void
     {
+        $this->data[] = $item;
+        foreach ($this->indexes as $index) {
+            $index->insert($item);
+        }
     }
 }

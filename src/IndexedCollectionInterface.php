@@ -24,5 +24,5 @@ interface IndexedCollectionInterface
 
     public function search(array $where): array;
 
-    public function add(object $data): void;
+    public function add(object $item): void;
 }
