@@ -13,5 +13,7 @@ interface IndexInterface
 {
     public function insert(object $value): void;
 
-    public function search(string $value): array;
+    public function search(string $value): ?string;
+
+    public function printTree(): void;
 }

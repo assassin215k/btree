@@ -21,12 +21,24 @@ $data = [
     new Person('Owen', 17),
     new Person('Lisa', 44),
     new Person('Alex', 31),
+    new Person('Artur', 28),
+    new Person('Ivan', 17),
+    new Person('Roman', 44),
+    new Person('Peter', 31),
+    new Person('Olga', 18),
+    new Person('Owen', 27),
+    new Person('Lisa', 34),
+    new Person('Alex', 21),
 ];
 
-$collection = new IndexedCollection($data);
+//echo phpinfo();
+//die;
+
+$collection = new IndexedCollection($data, 3);
 $collection->addIndex('name');
+$collection->printFirstIndex();
 
 //$collection->addSortBy('name', IndexSortOrder::DESC);
-//$collection->add(new Person('Alex', 31));
+//$collection->add(new Person('Sofia', 18));
 //var_dump($collection);
-echo "ok","\n";
+echo "=====","\n";

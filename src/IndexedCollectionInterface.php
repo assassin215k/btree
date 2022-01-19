@@ -25,4 +25,6 @@ interface IndexedCollectionInterface
     public function search(array $where): array;
 
     public function add(object $item): void;
+
+    public function printFirstIndex(): void;
 }

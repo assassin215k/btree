@@ -39,14 +39,15 @@ class IndexedCollection implements IndexedCollectionInterface
     }
 
     /**
-     * @param string|array $fieldName
-     * @param IndexAlgorithm $algorithm
-     * @param bool $replace
-     *
      * @throws IndexDuplicationException
      * @throws WrongClassException
+     *
+     * @param bool $replace
+     *
+     * @param string|array $fieldName
+     * @param IndexAlgorithm $algorithm
      */
-    public function addIndex(string|array $fieldName, IndexAlgorithm $algorithm = IndexAlgorithm::BTREE): void
+    public function addIndex(string | array $fieldName, IndexAlgorithm $algorithm = IndexAlgorithm::BTREE): void
     {
         $indexKey = IndexHelper::getIndexName($fieldName);
         if (key_exists($indexKey, $this->indexes)) {
@@ -68,13 +69,14 @@ class IndexedCollection implements IndexedCollectionInterface
     }
 
     /**
+     * @throws IndexMissingException
+     *
      * @param string|array $fieldName
      *
      * @return void
      *
-     * @throws IndexMissingException
      */
-    public function dropIndex(string|array $fieldName): void
+    public function dropIndex(string | array $fieldName): void
     {
         $indexKey = IndexHelper::getIndexName($fieldName);
 
@@ -121,6 +123,13 @@ class IndexedCollection implements IndexedCollectionInterface
         $this->data[] = $item;
         foreach ($this->indexes as $index) {
             $index->insert($item);
+        }
+    }
+
+    public function printFirstIndex(): void
+    {
+        if (count($this->indexes)) {
+            array_shift($this->indexes)->printTree();
         }
     }
 }

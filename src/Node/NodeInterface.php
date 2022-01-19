@@ -9,13 +9,21 @@ namespace Btree\Node;
  */
 interface NodeInterface
 {
-    public function insertKey(int $key): void;
+    public function getTotal(): int;
 
-    public function selectKey(int $key): ?string;
+    public function insertKey(string $key): void;
 
-    public function split(int $key, NodeInterface $node): void;
+    public function selectKey(string $key): ?string;
 
-    public function traverse();
+    public function splitChild(string $key, Node $firstNode): void;
 
-    public function searchNode(int $key): ?NodeInterface;
+    public function traverse(): void;
+
+    public function searchNode(string $key): ?NodeInterface;
+
+    public function isLeaf(): bool;
+
+    public function getDegree(): int;
+
+    public function insertNonFull(string $key): void;
 }
