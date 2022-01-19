@@ -2,36 +2,17 @@
 
 require_once 'vendor/autoload.php';
 
-use Btree\Algorithm\IndexAlgorithm;
 use Btree\IndexedCollection;
-use Btree\SortOrder\IndexSortOrder;
 
-interface IPerson
-{
-    public function getName(): string;
-
-    public function getAge(): int;
-}
-
-class Person implements IPerson
+class Person
 {
     public function __toString(): string
     {
         return $this->name;
     }
 
-    public function __construct(private string $name, private int $age)
+    public function __construct(public string $name, public int $age)
     {
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getAge(): int
-    {
-        return $this->age;
     }
 }
 

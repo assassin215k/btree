@@ -2,8 +2,12 @@
 
 namespace Btree\Index;
 
+use Btree\Exception\MissedFieldException;
+use Btree\Exception\MissedPropertyException;
 use Btree\Node\Node;
 use Btree\Node\NodeInterface;
+use ReflectionClass;
+use ReflectionProperty;
 
 /**
  * Class Index
@@ -16,20 +20,48 @@ class BtreeIndex implements IndexInterface
 {
     public static int $nodeSize = 16;
 
-    private Node $root;
+    private ?Node $root = null;
     private readonly array|string $fields;
 
+    /**
+     * @param array|string $fields
+     *
+     * @throws MissedFieldException
+     */
     public function __construct(array|string $fields)
     {
         self::$nodeSize = 2;
 
         $this->fields = is_array($fields) ? $fields : [$fields];
-        $this->root = new Node();
+
+        if (!count($this->fields)) {
+            throw new MissedFieldException();
+        }
+
+        foreach ($this->fields as $field) {
+            if (empty($field)) {
+                throw new MissedFieldException();
+            }
+        }
     }
 
     public function insert(object $value): void
     {
-        $hash = $this->encode($value->getName().$value->getAge());
+        $key = '';
+        foreach ($this->fields as $field) {
+            if (empty($value->$field)) {
+                throw new MissedPropertyException($field, $value);
+            }
+
+            $key .= $value->$field;
+        }
+
+        var_dump($key);
+
+//        var_dump(get_object_vars($value));
+//        var_dump(get_object_vars($value));
+//        $key =
+//        $hash = $this->encode($value->getName() . $value->getAge());
 
 //        $this->root-> ($hash, $value);
 //        var_dump($hash);
@@ -38,53 +70,25 @@ class BtreeIndex implements IndexInterface
 
     public function search(string $value): array
     {
-        return [];
-    }
-
-//    private function findNode():NodeInterface {
-//
-//    }
-
-    function encode($string) {
-        $ans = array();
-//        $string = str_split($string);
-        #go through every character, changing it to its ASCII value
-
-        $length = strlen($string);
-        for ($i=0; $i<$length; $i++) {
-            $ascii = ord($string[$i]);
-            $ans[] = $ascii;
+        $node = $this->searchNode($value);
+        if (is_null($node)) {
+            return [];
         }
-        unset($ascii);
 
-//        for ($i = 0; $i < count($string); $i++) {
-//
-//            #ord turns a character into its ASCII values
-//            $ascii = (string) ord($string[$i]);
-//
-//            #make sure it's 3 characters long
-//            if (strlen($ascii) < 3)
-//                $ascii = '0'.$ascii;
-//            $ans[] = $ascii;
-//        }
-
-        #turn it into a string
-        return implode('', $ans);
+        return $node->selectKey($value);
     }
 
-    function decode($string) {
-        $ans = '';
-        $string = str_split($string);
-        $chars = array();
+    /**
+     * @param string $key
+     *
+     * @return NodeInterface|null
+     */
+    private function searchNode(string $key): ?NodeInterface
+    {
+        if (is_null($this->root)) {
+            return null;
+        }
 
-        #construct the characters by going over the three numbers
-        for ($i = 0; $i < count($string); $i+=3)
-            $chars[] = $string[$i] . $string[$i+1] . $string[$i+2];
-
-        #chr turns a single integer into its ASCII value
-        for ($i = 0; $i < count($chars); $i++)
-            $ans .= chr($chars[$i]);
-
-        return $ans;
+        return $this->root->searchNode($key);
     }
 }
