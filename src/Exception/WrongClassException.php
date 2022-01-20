@@ -2,7 +2,6 @@
 
 namespace Btree\Exception;
 
-use Btree\Algorithm\AlgorithmInterface;
 use Btree\Index\IndexInterface;
 use Exception;
 

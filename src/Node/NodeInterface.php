@@ -11,11 +11,9 @@ interface NodeInterface
 {
     public function getTotal(): int;
 
-    public function insertKey(string $key): void;
+    public function insertKey(string $key, object $value): void;
 
-    public function selectKey(string $key): ?string;
-
-    public function splitChild(string $key, Node $firstNode): void;
+    public function selectKey(string $key): array;
 
     public function traverse(): void;
 
@@ -24,6 +22,4 @@ interface NodeInterface
     public function isLeaf(): bool;
 
     public function getDegree(): int;
-
-    public function insertNonFull(string $key): void;
 }

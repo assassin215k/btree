@@ -28,8 +28,8 @@ class BtreeIndex implements IndexInterface
     /**
      * @throws MissedFieldException
      *
-     * @param array|string $fields
      * @param int $nodeSize
+     * @param array|string $fields
      */
     public function __construct(array | string $fields, int $nodeSize = 3)
     {
@@ -46,6 +46,8 @@ class BtreeIndex implements IndexInterface
                 throw new MissedFieldException();
             }
         }
+
+        $this->root = new Node(self::$nodeSize);
     }
 
     /**
@@ -59,44 +61,7 @@ class BtreeIndex implements IndexInterface
     {
         $key = $this->getKey($value);
 
-        // If tree is empty create new and insert a key
-        if (is_null($this->root)) {
-            $this->root = new Node(self::$nodeSize);
-            $this->root->insertKey($key);
-
-            return;
-        }
-
-        // If root is full, then tree grows in height
-        if ($this->root->keyTotal > 2 * self::$nodeSize - 1) {
-            // Create a node for new root
-            $newNode = new Node(self::$nodeSize);
-
-            // Make old root as child of new root
-            $newNode->children[0] = $this->root;
-
-            // Split the old root and move 1 key to the new root
-            $newNode->splitChild(0, $this->root);
-
-            /**
-             * New root has two children now.
-             * Decide which of the two children is going to have new key
-             */
-            $i = 0;
-            if ($newNode->selectKey(0) < $key) {
-                $i++;
-            }
-
-            $newNode->children[$i]->insertNonFull($key);
-
-            // Change root
-            $this->root = $newNode;
-
-            return;
-        }
-
-        // If root is not full, call insertNonFull for root
-        $this->root->insertNonFull($key);
+        $this->root->insertKey($key, $value);
     }
 
     /**
@@ -120,28 +85,16 @@ class BtreeIndex implements IndexInterface
         return $key;
     }
 
-    public function search(string $value): ?string
-    {
-        $node = $this->searchNode($value);
-        if (is_null($node)) {
-            return null;
-        }
-
-        return $node->selectKey($value);
-    }
-
     /**
      * @param string $key
      *
-     * @return NodeInterface|null
+     * @return array
      */
-    private function searchNode(string $key): ?NodeInterface
+    public function search(string $key): array
     {
-        if (is_null($this->root)) {
-            return null;
-        }
+        $node = $this->root->searchNode($key);
 
-        return $this->root->searchNode($key);
+        return $node->selectKey($key);
     }
 
     public function printTree(): void

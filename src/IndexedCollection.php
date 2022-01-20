@@ -57,6 +57,9 @@ class IndexedCollection implements IndexedCollectionInterface
         $indexClass = IndexAlgorithm::getIndexClass($algorithm);
         $index = new $indexClass($fieldName);
 
+        var_dump($index);
+        die;
+
         if (!$index instanceof IndexInterface) {
             throw new WrongClassException($algorithm::class);
         }
