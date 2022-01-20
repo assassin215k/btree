@@ -5,7 +5,6 @@ namespace Btree\Index;
 use Btree\Exception\MissedFieldException;
 use Btree\Exception\MissedPropertyException;
 use Btree\Node\Node;
-use Btree\Node\NodeInterface;
 
 /**
  * Class Index
@@ -61,7 +60,7 @@ class BtreeIndex implements IndexInterface
     {
         $key = $this->getKey($value);
 
-        $this->root->insertKey($key, $value);
+        $this->root = $this->root->insertKey($key, $value);
     }
 
     /**
