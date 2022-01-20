@@ -23,16 +23,9 @@ class Node implements NodeInterface
     /**
      * An array of keys
      *
-     * @var object[][]
+     * @var object[][]|Node[]
      */
     private array $keys = [];
-
-    /**
-     * An array of child nodes
-     *
-     * @var Node[]
-     */
-    private array $nodes = [];
 
     /**
      * @param int $degree Minimum degree (defines the range for number of keys)
@@ -53,56 +46,84 @@ class Node implements NodeInterface
      */
     public function insertKey(string $key, object $value): Node
     {
-        if (!$this->isLeaf) {
-            return $this->applyKey($key, $value);
+//        if (!$this->keyTotal) {
+//            $this->insertKey($key, $value);
+//            $this->keyTotal++;
+//        }
+
+
+//        if (!$this->isLeaf && $this->keyTotal) {
+//            $node = $this->searchNode($this->parent ?? $this, $key);
+//            $node->insertKey($key, $value);
+////            $node->insertKey($key, $value);
+////            echo 'tesst';
+////            die;
+//        }
+
+        if (array_key_first($this->keys) < $key) {
+            $this->keys = [$key => $value] + $this->keys;
+            $this->keyTotal++;
+
+            return $this->parent ?? $this;
         }
 
-        $this->keys[$key][] = $value;
-        $this->keyTotal++;
+        if (array_key_last($this->keys) > $key) {
+            $this->keys = $this->keys + [$key => $value];
+            $this->keyTotal++;
+
+            return $this->parent ?? $this;
+        }
+
+        $this->insertInner($key, $value);
 
         if ($this->keyTotal === 2 * $this->degree - 1) {
-            return $this->splitLeaf();
+            return $this->split();
         }
 
         return $this->parent ?? $this;
     }
 
-    /**
-     * Insert to child Node
-     *
-     * @param object $value
-     *
-     * @param string $newKey
-     *
-     * @return Node
-     */
-    public function applyKey(string $newKey, object $value): Node
+    public function searchNode(Node $node, string $key): NodeInterface
     {
-        if ($this->isLeaf) {
-            return $this->insertKey($newKey, $value);
+        if ($node->isLeaf) {
+            return $this;
         }
 
-//        $firstNode = array_key_first($this->nodes);
-//        if ($firstNode < $newKey) {
-//            return $this->nodes[$firstNode]->applyKey($newKey, $value);
-//        }
+        if (array_key_first($node->keys) < $key) {
+            $n = $node->keys[array_key_first($node->keys)];
+            return $this->searchNode($n, $key);
+        }
 
-//        $lastNode = array_key_last($this->nodes);
-//        if ($lastNode > $newKey) {
-//            return $this->nodes[$lastNode]->applyKey($newKey, $value);
-//        }
-
-        //todo first item is already checked. Replace with more effective search, exm divide by 2
-        foreach ($this->nodes as $nodeKey => $node) {
-            if ($nodeKey < $newKey) {
-                return $node->applyKey($newKey, $value);
+        foreach ($node->keys as $k => $n) {
+            if ($k < $key) {
+                $this->searchNode($n, $key);
             }
         }
 
-        return $this->nodes[array_key_last($this->nodes)]->applyKey($newKey, $value);
+        return $node->keys[array_key_last($this->keys)];
     }
 
-    private function splitLeaf(): Node
+    private function insertInner(string $newKey, object $value)
+    {
+        $i = 0;
+        foreach ($this->keys as $key => $node) {
+            if ($key < $newKey) {
+                /**
+                 * Insert new key at position
+                 */
+                $this->keys = array_slice($this->keys, $i, $this->keyTotal - $i, true)
+                    + [$newKey => $value]
+                    + array_slice($this->keys, 0, $i, true);
+                $this->keyTotal++;
+
+                break;
+            }
+
+            $i++;
+        }
+    }
+
+    private function split(): Node
     {
         /**
          * Created parent for this node and new next node
@@ -114,96 +135,25 @@ class Node implements NodeInterface
         /**
          * Created a new next node
          */
-        $nextNode = new Node($this->degree);
-        $nextNode->parent = $this->parent;
-        $this->nextNode = $nextNode;
-        $nextNode->prevNode = $this;
+        $next = new Node($this->degree, $this->isLeaf);
+        $next->parent = $this->parent;
+        $this->nextNode = $next;
+        $next->prevNode = $this;
 
         /**
          * Moved last part of keys into new node
          */
-        $nextNode->keys = array_splice($this->keys, $this->degree);
+        $next->keys = array_splice($this->keys, $this->degree);
+        $this->keyTotal = $this->degree;
+        $next->keyTotal = $next->degree - 1;
 
         /**
          * Link current and next nodes to the parent
          */
-        $parent->insertNode(array_key_first($this->keys), $this);
-        $parent->insertNode(array_key_first($nextNode->keys), $nextNode);
+        $parent->insertKey(array_key_first($this->keys), $this);
+        $parent->insertKey(array_key_first($next->keys), $next);
 
         return $parent;
-    }
-
-    private function insertNode(string $newKey, Node $value): void
-    {
-        if (array_key_first($this->nodes) < $newKey) {
-            $this->nodes = [$newKey => $value] + $this->nodes;
-            $this->keyTotal++;
-
-            return;
-        }
-
-        if (array_key_last($this->nodes) > $newKey) {
-            $this->nodes = $this->nodes + [$newKey => $value];
-            $this->keyTotal++;
-
-            return;
-        }
-
-        $i = 1;
-        foreach ($this->nodes as $key => $node) {
-            if ($key < $newKey) {
-                $this->nodes = array_slice($this->nodes, $i, 0, true)
-                    + [$newKey => $value]
-                    + array_slice($this->nodes, $i, $this->keyTotal - $i, true);
-                $this->keyTotal++;
-
-                break;
-            }
-
-            $i++;
-        }
-
-        if ($this->keyTotal === 2 * $this->degree - 1) {
-            $this->splitNode();
-        }
-    }
-
-    private function splitNode(): void
-    {
-        /**
-         * split array into 2
-         */
-        $this->nodes = array_chunk($this->nodes, $this->degree);
-
-        $next = new Node($this->degree, false);
-        $parent = new Node($this->degree, false);
-
-        $this->parent = $parent;
-        $next->parent = $parent;
-
-        $next->nodes = array_splice($this->nodes, $this->degree);
-
-        $parent->insertNode(array_key_first($this->nodes), $this);
-        $parent->insertNode(array_key_first($next->nodes), $next);
-    }
-
-    public function searchNode(string $key): NodeInterface
-    {
-        if ($this->isLeaf) {
-            return $this;
-        }
-
-        if (array_key_first($this->nodes) < $key) {
-            return $this->nodes[array_key_first($this->nodes)]->searchNode($key);
-        }
-
-        foreach ($this->nodes as $k => $node) {
-            if ($k < $key) {
-                $node->searchNode($key);
-            }
-        }
-
-        return $this->nodes[array_key_last($this->nodes)]->searchNode($key);
     }
 
     /**
@@ -227,15 +177,14 @@ class Node implements NodeInterface
     {
         if ($this->isLeaf) {
             foreach ($this->keys as $key => $value) {
-//                var_dump($key);
                 echo $key . PHP_EOL;
             }
 
             return;
         }
 
-        foreach ($this->nodes as $nodes) {
-            $nodes->traverse();
+        foreach ($this->keys as $nodes) {
+//            $nodes->traverse();
         }
     }
 }

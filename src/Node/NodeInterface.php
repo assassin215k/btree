@@ -15,5 +15,5 @@ interface NodeInterface
 
     public function traverse(): void;
 
-    public function searchNode(string $key): ?NodeInterface;
+    public function searchNode(Node $node, string $key): ?NodeInterface;
 }
