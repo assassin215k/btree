@@ -9,11 +9,11 @@ namespace Btree\Node;
  */
 interface NodeInterface
 {
-    public function insertKey(string $key, object $value): Node;
+    public function insertKey(string $key, object $value, bool $toLeaf): Node;
 
     public function selectKey(string $key): array;
 
     public function traverse(): void;
 
-    public function searchNode(Node $node, string $key): ?NodeInterface;
+    public function searchNode($key, bool $leaf): ?NodeInterface;
 }

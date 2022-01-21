@@ -46,7 +46,7 @@ class BtreeIndex implements IndexInterface
             }
         }
 
-        $this->root = new Node(self::$nodeSize);
+        $this->root = new Node(self::$nodeSize, true);
     }
 
     /**
