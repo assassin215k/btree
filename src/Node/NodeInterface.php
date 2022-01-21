@@ -9,7 +9,7 @@ namespace Btree\Node;
  */
 interface NodeInterface
 {
-    public function insertKey(string $key, object $value, bool $toLeaf): Node;
+    public function insertKey(string $key, object $value, ?Node &$root): void;
 
     public function selectKey(string $key): array;
 

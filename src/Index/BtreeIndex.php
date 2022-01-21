@@ -60,7 +60,7 @@ class BtreeIndex implements IndexInterface
     {
         $key = $this->getKey($value);
 
-        $this->root = $this->root->insertKey($key, $value);
+        $this->root->searchNode($key)->insertKey($key, $value, $this->root);
     }
 
     /**
@@ -78,7 +78,7 @@ class BtreeIndex implements IndexInterface
                 throw new MissedPropertyException($field, $value);
             }
 
-            $key .= $value->$field;
+            $key .= is_null($value->$field) ? '_' : $value->$field;
         }
 
         return $key;

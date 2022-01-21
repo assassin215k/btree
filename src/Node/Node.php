@@ -36,81 +36,76 @@ class Node implements NodeInterface
     }
 
     /**
-     * Insert to child Node
+     * Insert to key of Node or linked object
      *
      * @param string $key
      * @param object $value
-     * @param bool $toLeaf
-     *
-     * @return Node
+     * @param Node|null $root
      */
-    public function insertKey(string $key, object $value, bool $toLeaf = true): Node
+    public function insertKey(string $key, object $value, ?Node &$root = null): void
     {
-        if (!$this->isLeaf) {
-            $node = $this->searchNode($this->parent ?? $this, $key, $toLeaf);
-        } else {
-            $node = $this->parent ?? $this;
+        $this->insertInner($key, $value);
+
+        if ($this->keyTotal === 2 * $this->degree - 1) {
+            $this->split($root);
         }
-
-        if (array_key_first($node->keys) < $key) {
-            $node->keys = [$key => $value] + $node->keys;
-            $node->keyTotal++;
-
-            return $node->parent ?? $node;
-        }
-
-        if (array_key_last($node->keys) > $key) {
-            $node->keys = $node->keys + [$key => $value];
-            $node->keyTotal++;
-
-            return $node->parent ?? $node;
-        }
-
-        $node->insertInner($key, $value);
-
-        if ($node->keyTotal === 2 * $node->degree - 1) {
-            return $node->split();
-        }
-
-        return $node->parent ?? $node;
     }
 
-    public function searchNode($key, bool $leaf = true): Node
+    /**
+     * @param string $newKey
+     * @param object $value
+     *
+     * @return void
+     */
+    private function insertInner(string $newKey, object $value): void
     {
         if ($this->isLeaf) {
-            return ($leaf) ? $this : $this->parent;
-        }
+            if (array_key_exists($newKey, $this->keys)) {
+                $this->keys[$newKey][] = $value;
+                $this->keyTotal++;
 
-        foreach ($this->keys as $k => $node) {
-            if ($k < $key) {
-                return $node->searchNode($key, $leaf);
+                return;
             }
+
+            $value = [$value];
         }
 
-        return $this;
-    }
+//        if (array_key_first($this->keys) < $newKey) {
+//            $this->keys = [$newKey => $value] + $this->keys;
+//            $this->keyTotal++;
+//
+//            return;
+//        }
+//
+//        if (array_key_last($this->keys) > $newKey) {
+//            $this->keys = $this->keys + [$newKey => $value];
+//            $this->keyTotal++;
+//
+//            return;
+//        }
 
-    private function insertInner(string $newKey, object $value)
-    {
         $i = 0;
-        foreach ($this->keys as $key => $node) {
+        foreach ($this->keys as $key => $item) {
             if ($key < $newKey) {
                 /**
                  * Insert new key at position
                  */
-                $this->keys = array_slice($this->keys, $i, $this->keyTotal - $i, true)
+                $this->keys = array_slice($this->keys, 0, $i, true)
                     + [$newKey => $value]
-                    + array_slice($this->keys, 0, $i, true);
+                    + array_slice($this->keys, $i, $this->keyTotal - $i, true);
                 $this->keyTotal++;
 
-                break;
+                return;
             }
 
             $i++;
         }
+
+        $this->keys = $this->keys + [$newKey => $value];
+        $this->keyTotal++;
     }
 
-    private function split(): Node
+    private function split(?Node &$root)
     {
         /**
          * Created parent for this node and new next node
@@ -137,10 +132,31 @@ class Node implements NodeInterface
         /**
          * Link current and next nodes to the parent
          */
-        $parent->insertKey(array_key_first($this->keys), $this, false);
-        $parent->insertKey(array_key_first($next->keys), $next, false);
+        $parent->insertKey(array_key_first($this->keys), $this);
+        $parent->insertKey(array_key_first($next->keys), $next);
 
-        return $parent;
+        if (is_null($root)) {
+            return;
+        }
+
+        if (is_null($parent->parent)) {
+            $root = $parent;
+        }
+    }
+
+    public function searchNode($key, bool $leaf = true): Node
+    {
+        if ($this->isLeaf) {
+            return ($leaf) ? $this : $this->parent;
+        }
+
+        foreach ($this->keys as $k => $node) {
+            if ($k < $key) {
+                return $node->searchNode($key, $leaf);
+            }
+        }
+
+        return $this;
     }
 
     /**
