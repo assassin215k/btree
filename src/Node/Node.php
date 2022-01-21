@@ -44,7 +44,9 @@ class Node implements NodeInterface
      */
     public function insertKey(string $key, object $value, ?Node &$root = null): void
     {
-        $this->insertInner($key, $value);
+        $newKey = $this->insert($key, $value);
+
+        $this->parent?->updateKey($newKey);
 
         if ($this->keyTotal === 2 * $this->degree - 1) {
             $this->split($root);
@@ -55,34 +57,20 @@ class Node implements NodeInterface
      * @param string $newKey
      * @param object $value
      *
-     * @return void
+     * @return string
      */
-    private function insertInner(string $newKey, object $value): void
+    private function insert(string $newKey, object $value): string
     {
         if ($this->isLeaf) {
             if (array_key_exists($newKey, $this->keys)) {
                 $this->keys[$newKey][] = $value;
                 $this->keyTotal++;
 
-                return;
+                return array_key_first($this->keys);
             }
 
             $value = [$value];
         }
-
-//        if (array_key_first($this->keys) < $newKey) {
-//            $this->keys = [$newKey => $value] + $this->keys;
-//            $this->keyTotal++;
-//
-//            return;
-//        }
-//
-//        if (array_key_last($this->keys) > $newKey) {
-//            $this->keys = $this->keys + [$newKey => $value];
-//            $this->keyTotal++;
-//
-//            return;
-//        }
 
         $i = 0;
         foreach ($this->keys as $key => $item) {
@@ -95,7 +83,7 @@ class Node implements NodeInterface
                     + array_slice($this->keys, $i, $this->keyTotal - $i, true);
                 $this->keyTotal++;
 
-                return;
+                return array_key_first($this->keys);
             }
 
             $i++;
@@ -103,6 +91,24 @@ class Node implements NodeInterface
 
         $this->keys = $this->keys + [$newKey => $value];
         $this->keyTotal++;
+
+        return array_key_first($this->keys);
+    }
+
+    private function updateKey(string $newKey): void
+    {
+        $i = 0;
+        foreach ($this->keys as $key => $node) {
+            if ($key < $newKey) {
+                $this->keys = array_slice($this->keys, 0, $i, true)
+                    + [$newKey => $node]
+                    + array_slice($this->keys, $i + 1, $this->keyTotal - $i - 1, true);
+
+                return;
+            }
+
+            $i++;
+        }
     }
 
     private function split(?Node &$root)
