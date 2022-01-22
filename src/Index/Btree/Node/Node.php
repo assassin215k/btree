@@ -1,6 +1,6 @@
 <?php
 
-namespace Btree\Node;
+namespace Btree\Index\Btree\Node;
 
 /**
  * Class Node
@@ -12,6 +12,8 @@ class Node implements NodeInterface
     public ?Node $prevNode = null;
     public ?Node $nextNode = null;
     public ?Node $parent = null;
+
+    public string $key;
 
     /**
      * Current number of keys
@@ -40,17 +42,22 @@ class Node implements NodeInterface
      *
      * @param string $key
      * @param object $value
-     * @param Node|null $root
+     *
+     * @return NodeInterface|null
      */
-    public function insertKey(string $key, object $value, ?Node &$root = null): void
+    public function insertKey(string $key, object $value): ?NodeInterface
     {
-        $newKey = $this->insert($key, $value);
+        $this->insert($key, $value);
 
-        $this->parent?->updateKey($newKey);
+        $this->parent?->updateKey($this->key);
 
         if ($this->keyTotal === 2 * $this->degree - 1) {
-            $this->split($root);
+            $this->split();
+
+            return $this->getRoot();
         }
+
+        return null;
     }
 
     /**
@@ -59,14 +66,13 @@ class Node implements NodeInterface
      *
      * @return string
      */
-    private function insert(string $newKey, object $value): string
+    private function insert(string $newKey, object $value): void
     {
         if ($this->isLeaf) {
             if (array_key_exists($newKey, $this->keys)) {
                 $this->keys[$newKey][] = $value;
-                $this->keyTotal++;
 
-                return array_key_first($this->keys);
+                return;
             }
 
             $value = [$value];
@@ -81,22 +87,31 @@ class Node implements NodeInterface
                 $this->keys = array_slice($this->keys, 0, $i, true)
                     + [$newKey => $value]
                     + array_slice($this->keys, $i, $this->keyTotal - $i, true);
-                $this->keyTotal++;
 
-                return array_key_first($this->keys);
+                $this->postInsert();
+
+                return;
             }
 
             $i++;
         }
 
         $this->keys = $this->keys + [$newKey => $value];
-        $this->keyTotal++;
+        $this->postInsert();
+    }
 
-        return array_key_first($this->keys);
+    private function postInsert(): void
+    {
+        $this->keyTotal++;
+        $this->key = array_key_first($this->keys);
     }
 
     private function updateKey(string $newKey): void
     {
+        if (array_key_exists($newKey, $this->keys)) {
+            return;
+        }
+
         $i = 0;
         foreach ($this->keys as $key => $node) {
             if ($key < $newKey) {
@@ -111,20 +126,32 @@ class Node implements NodeInterface
         }
     }
 
-    private function split(?Node &$root)
+    private function split(): void
     {
         /**
-         * Created parent for this node and new next node
+         * If $this has a parent split $this and link keys of news nodes to the parent
          */
-        $parent = new Node($this->degree, false);
-        $parent->parent = $this->parent;
-        $this->parent = $parent;
+        $parent = $this->parent;
+        if (!$parent) {
+            /**
+             * Created parent for this node and new next node
+             */
+            $parent = new Node($this->degree, false);
+            $this->parent = $parent;
+        }
 
         /**
          * Created a new next node
          */
         $next = new Node($this->degree, $this->isLeaf);
-        $next->parent = $this->parent;
+        $next->parent = $parent;
+
+        /**
+         * Move next of $this to new next node
+         */
+        if ($this->nextNode) {
+            $next->nextNode = $this->nextNode;
+        }
         $this->nextNode = $next;
         $next->prevNode = $this;
 
@@ -135,19 +162,43 @@ class Node implements NodeInterface
         $this->keyTotal = $this->degree;
         $next->keyTotal = $next->degree - 1;
 
+        $next->key = array_key_first($next->keys);
+
         /**
-         * Link current and next nodes to the parent
+         * Link current node to the parent if is new root
          */
-        $parent->insertKey(array_key_first($this->keys), $this);
-        $parent->insertKey(array_key_first($next->keys), $next);
-
-        if (is_null($root)) {
-            return;
+        if (!array_key_exists($this->key, $parent->keys)) {
+            $parent->insertKey($this->key, $this);
         }
 
-        if (is_null($parent->parent)) {
-            $root = $parent;
+        /**
+         * Link new node to the parent
+         */
+        $parent->insertKey($next->key, $next);
+
+        if ($parent->keyTotal === 2 * $parent->degree - 1) {
+            $parent->split();
         }
+    }
+
+    private function getRoot(): NodeInterface
+    {
+        return $this->parent ? $this->parent->getRoot() : $this;
+    }
+
+    public function searchLeaf(string $key): Node
+    {
+        if ($this->isLeaf) {
+            return $this;
+        }
+
+        foreach ($this->keys as $k => $node) {
+            if ($k > $key) {
+                return $node->searchLeaf($key);
+            }
+        }
+
+        return $this->keys[array_key_first($this->keys)];
     }
 
     public function searchNode($key, bool $leaf = true): Node
@@ -157,7 +208,7 @@ class Node implements NodeInterface
         }
 
         foreach ($this->keys as $k => $node) {
-            if ($k < $key) {
+            if ($k > $key) {
                 return $node->searchNode($key, $leaf);
             }
         }

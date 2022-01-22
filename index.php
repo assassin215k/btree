@@ -35,7 +35,7 @@ $data = [
 //die;
 
 $collection = new IndexedCollection($data, 3);
-$collection->addIndex('name');
+$collection->addIndex(['name','age']);
 $collection->printFirstIndex();
 
 //$collection->addSortBy('name', IndexSortOrder::DESC);

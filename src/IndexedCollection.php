@@ -7,8 +7,8 @@ use Btree\Exception\IndexDuplicationException;
 use Btree\Exception\IndexMissingException;
 use Btree\Exception\WrongClassException;
 use Btree\Helper\IndexHelper;
-use Btree\Index\IndexInterface;
-use Btree\SortOrder\IndexSortOrder;
+use Btree\Index\Btree\IndexInterface;
+use Btree\Builder\EnumSort;
 
 /**
  * Class IndexedCollection
@@ -89,11 +89,11 @@ class IndexedCollection implements IndexedCollectionInterface
 
     /**
      * @param string $field
-     * @param IndexSortOrder $order
+     * @param EnumSort $order
      *
      * @return $this
      */
-    public function sortBy(string $field, IndexSortOrder $order): self
+    public function sortBy(string $field, EnumSort $order): self
     {
         $this->sortOrder = [$field => $order];
 
@@ -102,11 +102,11 @@ class IndexedCollection implements IndexedCollectionInterface
 
     /**
      * @param string $field
-     * @param IndexSortOrder $order
+     * @param EnumSort $order
      *
      * @return $this
      */
-    public function addSortBy(string $field, IndexSortOrder $order): self
+    public function addSortBy(string $field, EnumSort $order): self
     {
         $this->sortOrder = array_merge($this->sortOrder, [$field => $order]);
 

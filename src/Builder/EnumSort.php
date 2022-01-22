@@ -1,6 +1,6 @@
 <?php
 
-namespace Btree\SortOrder;
+namespace Btree\Builder;
 
 /**
  * Enum IndexSortOrder
@@ -9,7 +9,7 @@ namespace Btree\SortOrder;
  *
  * @package assassin215k/btree
  */
-enum IndexSortOrder: string
+enum EnumSort: string
 {
     case ASC = 'asc';
     case DESC = 'desc';

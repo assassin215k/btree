@@ -1,6 +1,6 @@
 <?php
 
-namespace Btree\Index;
+namespace Btree\Index\Btree;
 
 /**
  * Interface IndexInterface

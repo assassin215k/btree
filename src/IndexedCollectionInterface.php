@@ -3,7 +3,7 @@
 namespace Btree;
 
 use Btree\Algorithm\IndexAlgorithm;
-use Btree\SortOrder\IndexSortOrder;
+use Btree\Builder\EnumSort;
 
 /**
  * Interface IndexedCollectionInterface
@@ -18,9 +18,9 @@ interface IndexedCollectionInterface
 
     public function dropIndex(string|array $fieldName): void;
 
-    public function sortBy(string $field, IndexSortOrder $order): self;
+    public function sortBy(string $field, EnumSort $order): self;
 
-    public function addSortBy(string $field, IndexSortOrder $order): self;
+    public function addSortBy(string $field, EnumSort $order): self;
 
     public function search(array $where): array;
 

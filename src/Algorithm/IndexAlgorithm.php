@@ -2,7 +2,7 @@
 
 namespace Btree\Algorithm;
 
-use Btree\Index\BtreeIndex;
+use Btree\Index\Btree\Index;
 
 /**
  * Enum IndexAlgorithm
@@ -18,7 +18,7 @@ enum IndexAlgorithm
     public static function getIndexClass(self $value): string
     {
         return match ($value) {
-            IndexAlgorithm::BTREE => BtreeIndex::class,
+            IndexAlgorithm::BTREE => Index::class,
         };
     }
 }

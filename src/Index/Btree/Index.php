@@ -1,10 +1,10 @@
 <?php
 
-namespace Btree\Index;
+namespace Btree\Index\Btree;
 
 use Btree\Exception\MissedFieldException;
 use Btree\Exception\MissedPropertyException;
-use Btree\Node\Node;
+use Btree\Index\Btree\Node\Node;
 
 /**
  * Class Index
@@ -13,7 +13,7 @@ use Btree\Node\Node;
  *
  * @package assassin215k/btree
  */
-class BtreeIndex implements IndexInterface
+class Index implements IndexInterface
 {
     public static int $nodeSize;
 
@@ -60,7 +60,10 @@ class BtreeIndex implements IndexInterface
     {
         $key = $this->getKey($value);
 
-        $this->root->searchNode($key)->insertKey($key, $value, $this->root);
+        $root = $this->root->searchLeaf($key)->insertKey($key, $value);
+        if ($root) {
+            $this->root = $root;
+        }
     }
 
     /**

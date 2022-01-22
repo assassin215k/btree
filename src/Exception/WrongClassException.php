@@ -2,7 +2,7 @@
 
 namespace Btree\Exception;
 
-use Btree\Index\IndexInterface;
+use Btree\Index\Btree\IndexInterface;
 use Exception;
 
 /**
