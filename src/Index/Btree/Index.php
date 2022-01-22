@@ -101,8 +101,6 @@ class Index implements IndexInterface
 
     public function printTree(): void
     {
-        if (!is_null($this->root)) {
-            $this->root->traverse();
-        }
+        $this->root->traverse();
     }
 }

@@ -35,10 +35,15 @@ $data = [
 //die;
 
 $collection = new IndexedCollection($data, 3);
-$collection->addIndex(['name','age']);
+$collection->addIndex(['name']);
 $collection->printFirstIndex();
+echo "=====","\n";
 
 //$collection->addSortBy('name', IndexSortOrder::DESC);
-//$collection->add(new Person('Sofia', 18));
+$collection->add(new Person('Sofia', 18));
+$collection->printFirstIndex();
+
+var_dump($collection->findKey('Lisa'));
+
 //var_dump($collection);
 echo "=====","\n";

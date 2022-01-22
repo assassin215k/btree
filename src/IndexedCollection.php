@@ -118,6 +118,11 @@ class IndexedCollection implements IndexedCollectionInterface
         return [];
     }
 
+    public function findKey(string $key): array
+    {
+        return $this->indexes[array_key_first($this->indexes)]->search($key);
+    }
+
     public function add(object $item): void
     {
         $this->data[] = $item;
@@ -128,8 +133,8 @@ class IndexedCollection implements IndexedCollectionInterface
 
     public function printFirstIndex(): void
     {
-        if (count($this->indexes)) {
-            array_shift($this->indexes)->printTree();
+        if (array_key_first($this->indexes)) {
+            $this->indexes[array_key_first($this->indexes)]->printTree();
         }
     }
 }

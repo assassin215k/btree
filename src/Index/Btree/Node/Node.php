@@ -194,11 +194,11 @@ class Node implements NodeInterface
             /**
              * Move next of $this to new next node
              */
-            if ($this->nextNode) {
-                $next->nextNode = $this->nextNode;
+            if ($this->prevNode) {
+                $next->prevNode = $this->prevNode;
             }
-            $this->nextNode = $next;
-            $next->prevNode = $this;
+            $this->prevNode = $next;
+            $next->nextNode = $this;
         }
 
         /**
@@ -256,28 +256,19 @@ class Node implements NodeInterface
             return $this;
         }
 
+        if (array_key_exists($key, $this->keys)) {
+            return $this->keys[$key];
+        }
+
+        $targetKey = array_key_first($this->keys);
         foreach (array_reverse($this->keys, true) as $k => $node) {
             if ($k > $key) {
-                return $node->searchLeaf($key);
+                $targetKey = $k;
+                break;
             }
         }
 
-        return $this->keys[array_key_last($this->keys)];
-    }
-
-    public function searchNode($key, bool $leaf = true): Node
-    {
-        if ($this->isLeaf) {
-            return ($leaf) ? $this : $this->parent;
-        }
-
-        foreach ($this->keys as $k => $node) {
-            if ($k > $key) {
-                return $node->searchNode($key, $leaf);
-            }
-        }
-
-        return $this;
+        return $this->keys[$targetKey];
     }
 
     /**
@@ -289,7 +280,40 @@ class Node implements NodeInterface
      */
     public function selectKey(string $key): array
     {
-        return (key_exists($key, $this->keys)) ? $this->keys[$key] : [];
+        if ($this->isLeaf) {
+            return $this->hasKey($key) ? $this->keys[$key] : [];
+        }
+
+        return $this->searchNode($key)->selectKey($key);
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function hasKey(string $key): bool
+    {
+        return key_exists($key, $this->keys);
+    }
+
+    public function searchNode($key, bool $leaf = true): Node
+    {
+        if ($this->isLeaf) {
+            return ($leaf) ? $this : $this->parent;
+        }
+
+        if (array_key_exists($key, $this->keys)) {
+            return $this->keys[$key];
+        }
+
+        foreach ($this->keys as $k => $node) {
+            if ($k < $key) {
+                return $node->searchNode($key, $leaf);
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -300,15 +324,19 @@ class Node implements NodeInterface
     public function traverse(): void
     {
         if ($this->isLeaf) {
-            foreach ($this->keys as $key => $value) {
-                echo $key . PHP_EOL;
+            foreach ($this->keys as $key => $values) {
+                echo "$key: " . count($values) . PHP_EOL;
             }
 
             return;
         }
 
-        foreach ($this->keys as $nodes) {
-//            $nodes->traverse();
+        foreach ($this->keys as $node) {
+            $node->traverse();
         }
+    }
+
+    public function dropKey(string $key): void
+    {
     }
 }
