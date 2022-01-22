@@ -144,18 +144,25 @@ class Node implements NodeInterface
             return;
         }
 
+        $newValue = [$newKey => $this->keys[$oldNodeKey]];
+        unset($this->keys[$oldNodeKey]);
+
         $i = 0;
         foreach ($this->keys as $key => $node) {
-            if ($key === $oldNodeKey) {
+            if ($key < $newKey) {
                 $this->keys = array_slice($this->keys, 0, $i, true)
-                    + [$newKey => $node]
-                    + array_slice($this->keys, $i + 1, $this->keyTotal - $i - 1, true);
+                    + $newValue
+                    + array_slice($this->keys, $i, $this->keyTotal - $i, true);
+                $this->key = array_key_first($this->keys);
 
                 return;
             }
 
             $i++;
         }
+
+        $this->keys += $newValue;
+        $this->key = array_key_first($this->keys);
     }
 
     /**
@@ -250,7 +257,7 @@ class Node implements NodeInterface
         }
 
         foreach (array_reverse($this->keys, true) as $k => $node) {
-            if ($k < $key) {
+            if ($k > $key) {
                 return $node->searchLeaf($key);
             }
         }
