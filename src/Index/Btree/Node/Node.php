@@ -202,20 +202,6 @@ class Node implements NodeInterface
         $next->parent = $parent;
 
         /**
-         * Linked next and prev leafs
-         */
-        if ($this->isLeaf) {
-            /**
-             * Move next of $this to new next node
-             */
-            if ($this->prevNode) {
-                $next->prevNode = $this->prevNode;
-            }
-            $this->prevNode = $next;
-            $next->nextNode = $this;
-        }
-
-        /**
          * Moved last part of keys into new node
          */
         $next->keys = array_splice($this->keys, $this->degree);
@@ -240,10 +226,22 @@ class Node implements NodeInterface
         $parent->insertKey($next->key, $next);
 
         $parent->rebase();
-    }
 
-    private function unSplit(): void
-    {
+        /**
+         * Linked next and prev leafs
+         */
+        if (!$this->isLeaf) {
+            return;
+        }
+
+        $oldNext = $this->nextNode;
+        if ($oldNext) {
+            $next->nextNode = $oldNext;
+            $oldNext->prevNode = $next;
+        }
+
+        $this->nextNode = $next;
+        $next->prevNode = $this;
     }
 
     /**
@@ -259,6 +257,7 @@ class Node implements NodeInterface
         $this->insert($key, $value);
 
         $this->rebase();
+
         return $this->getRoot();
     }
 
@@ -371,5 +370,10 @@ class Node implements NodeInterface
     public function getRoot(): NodeInterface
     {
         return $this->parent?->getRoot() ?? $this;
+    }
+
+    private function unSplit(): void
+    {
+//        $this->next()
     }
 }
