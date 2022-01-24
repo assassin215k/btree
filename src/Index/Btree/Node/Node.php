@@ -7,7 +7,7 @@ namespace Btree\Index\Btree\Node;
  *
  * @package assassin215k/btree
  */
-class Node implements NodeInterface
+final class Node implements NodeInterface
 {
     public ?Node $prevNode = null;
     public ?Node $nextNode = null;
@@ -38,34 +38,6 @@ class Node implements NodeInterface
      */
     public function __construct(private readonly int $degree, private readonly bool $isLeaf = true)
     {
-    }
-
-    /**
-     * Search leaf of tree
-     *
-     * @param string $key
-     *
-     * @return $this
-     */
-    public function searchLeaf(string $key): Node
-    {
-        if ($this->isLeaf) {
-            return $this;
-        }
-
-        if (array_key_exists($key, $this->keys)) {
-            return $this->keys[$key];
-        }
-
-        $targetKey = array_key_first($this->keys);
-        foreach (array_reverse($this->keys, true) as $k => $node) {
-            if ($k > $key) {
-                $targetKey = $k;
-                break;
-            }
-        }
-
-        return $this->keys[$targetKey];
     }
 
     /**
@@ -142,40 +114,175 @@ class Node implements NodeInterface
     }
 
     /**
-     * todo not realized method
+     * Drop key from current leaf
      *
      * @param string $key
-     *
-     * @return void
      */
-    public function dropKey(string $key): NodeInterface
+    public function dropKey(string $key): void
     {
-        if ($this->hasKey($key)) {
-            unset($this->keys[$key]);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Rebase if current node has too small ot too many keys
-     *
-     * @return void
-     */
-    public function rebase(): void
-    {
-        if ($this->keyTotal === 2 * $this->degree - 1) {
-            $this->split();
-
-            $this->parent?->rebase();
+        if (!$this->isLeaf) {
+            $this->searchLeaf($key)->dropKey($key);
 
             return;
         }
 
-        if ($this->keyTotal < $this->degree - 1) {
-            $this->unSplit();
+        if (!$this->hasKey($key)) {
+            return;
+        }
 
-            $this->parent?->rebase();
+        unset($this->keys[$key]);
+        $this->keyTotal--;
+
+        $oldKey = $this->key;
+        $this->key = array_key_first($this->keys);
+
+        if (!$this->parent) {
+            return;
+        }
+
+        $this->parent->updateKey($oldKey, $this->key);
+
+        $this->parent->merge($this);
+    }
+
+    /**
+     * Search leaf of tree
+     *
+     * @param string $key
+     *
+     * @return $this
+     */
+    public function searchLeaf(string $key): Node
+    {
+        if ($this->isLeaf) {
+            return $this;
+        }
+
+        if (array_key_exists($key, $this->keys)) {
+            return $this->keys[$key];
+        }
+
+        $targetKey = array_key_first($this->keys);
+        foreach (array_reverse($this->keys, true) as $k => $node) {
+            if ($k > $key) {
+                $targetKey = $k;
+                break;
+            }
+        }
+
+        return $this->keys[$targetKey];
+    }
+
+    /**
+     * Replace old key with new to same child node
+     *
+     * @param string $oldNodeKey
+     * @param string $newKey
+     *
+     * @return void
+     */
+    private function updateKey(string $oldNodeKey, string $newKey): void
+    {
+        if (array_key_exists($newKey, $this->keys)) {
+            return;
+        }
+
+        $newValue = [$newKey => $this->keys[$oldNodeKey]];
+        unset($this->keys[$oldNodeKey]);
+
+        $i = 0;
+        foreach ($this->keys as $key => $node) {
+            if ($key < $newKey) {
+                $this->keys = array_slice($this->keys, 0, $i, true)
+                    + $newValue
+                    + array_slice($this->keys, $i, $this->keyTotal - $i, true);
+                $this->key = array_key_first($this->keys);
+
+                return;
+            }
+
+            $i++;
+        }
+
+        $this->keys += $newValue;
+        $this->key = array_key_first($this->keys);
+    }
+
+    /**
+     * Move keys of the node to another node if the keys don't enough
+     *
+     * @param Node $node
+     *
+     * @return void
+     */
+    private function merge(Node $node): void
+    {
+        if ($node->degree - 1 < $node->keyTotal) {
+            return;
+        }
+
+        if ($node->prevNode) {
+            $node->prevNode->nextNode = $node->nextNode;
+        }
+
+        if ($node->nextNode) {
+            $node->nextNode->prevNode = $node->prevNode;
+        }
+
+        unset($this->keys[$node->key]);
+        $this->keyTotal--;
+
+        /**
+         * Move keys to previous node
+         */
+        if ($node->prevNode && $node->prevNode->keyTotal < $node->degree) {
+            $node->prevNode->keys = $node->prevNode->keys + $node->keys;
+            $node->prevNode->keyTotal += $node->keyTotal;
+
+            unset($node);
+
+            return;
+        }
+
+        /**
+         * Move keys to next node
+         */
+        if ($node->nextNode && $node->nextNode->keyTotal < $node->degree) {
+            $node->nextNode->keys = $node->keys + $node->nextNode->keys;
+            $node->nextNode->keyTotal += $node->keyTotal;
+
+            $oldKey = $node->nextNode->key;
+            $node->nextNode->key = $node->key;
+
+            $node->nextNode?->parent->updateKey($oldKey, $node->nextNode->key);
+
+            unset($node);
+
+            return;
+        }
+
+        if ($node->prevNode) {
+            $nodeToUpdate = $node->prevNode;
+            $nodeToUpdate->keys = $nodeToUpdate->keys + $node->keys;
+            $nodeToUpdate->keyTotal += $node->keyTotal;
+
+            $nodeToUpdate->split();
+
+            return;
+        }
+
+        if ($node->nextNode) {
+            $nodeToUpdate = $node->nextNode;
+            $nodeToUpdate->keys = $node->keys + $nodeToUpdate->keys;
+            $nodeToUpdate->keyTotal += $node->keyTotal;
+            $oldKey = $nodeToUpdate->key;
+            $nodeToUpdate->key = $node->key;
+
+            $nodeToUpdate?->parent->updateKey($oldKey, $nodeToUpdate->key);
+
+            $nodeToUpdate->split();
+
+            return;
         }
     }
 
@@ -186,6 +293,10 @@ class Node implements NodeInterface
      */
     private function split(): void
     {
+        if ($this->keyTotal < 2 * $this->degree - 1) {
+            return;
+        }
+
         /**
          * Use current parent or create a new one
          */
@@ -205,8 +316,8 @@ class Node implements NodeInterface
          * Moved last part of keys into new node
          */
         $next->keys = array_splice($this->keys, $this->degree);
+        $next->keyTotal = $this->keyTotal - $this->degree;
         $this->keyTotal = $this->degree;
-        $next->keyTotal = $next->degree - 1;
 
         /**
          * Added top key of new node to self
@@ -225,7 +336,7 @@ class Node implements NodeInterface
          */
         $parent->insertKey($next->key, $next);
 
-        $parent->rebase();
+        $parent->split();
 
         /**
          * Linked next and prev leafs
@@ -252,13 +363,11 @@ class Node implements NodeInterface
      *
      * @return NodeInterface|null
      */
-    public function insertKey(string $key, object $value): NodeInterface
+    public function insertKey(string $key, object $value): void
     {
         $this->insert($key, $value);
 
-        $this->rebase();
-
-        return $this->getRoot();
+        $this->split();
     }
 
     /**
@@ -328,52 +437,20 @@ class Node implements NodeInterface
     }
 
     /**
-     * Replace old key with new to same child node
-     *
-     * @param string $oldNodeKey
-     * @param string $newKey
-     *
-     * @return void
-     */
-    private function updateKey(string $oldNodeKey, string $newKey): void
-    {
-        if (array_key_exists($newKey, $this->keys)) {
-            return;
-        }
-
-        $newValue = [$newKey => $this->keys[$oldNodeKey]];
-        unset($this->keys[$oldNodeKey]);
-
-        $i = 0;
-        foreach ($this->keys as $key => $node) {
-            if ($key < $newKey) {
-                $this->keys = array_slice($this->keys, 0, $i, true)
-                    + $newValue
-                    + array_slice($this->keys, $i, $this->keyTotal - $i, true);
-                $this->key = array_key_first($this->keys);
-
-                return;
-            }
-
-            $i++;
-        }
-
-        $this->keys += $newValue;
-        $this->key = array_key_first($this->keys);
-    }
-
-    /**
      * Search root of tree recursively to check if root is changed
      *
      * @return NodeInterface
      */
     public function getRoot(): NodeInterface
     {
-        return $this->parent?->getRoot() ?? $this;
-    }
+        if ($this->parent) {
+            return $this->parent->getRoot();
+        }
 
-    private function unSplit(): void
-    {
-//        $this->next()
+        if ($this->keyTotal === 1 && !$this->isLeaf) {
+            return $this->keys[$this->key];
+        }
+
+        return $this;
     }
 }

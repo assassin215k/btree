@@ -5,6 +5,7 @@ namespace Btree\Index\Btree;
 use Btree\Exception\MissedFieldException;
 use Btree\Exception\MissedPropertyException;
 use Btree\Index\Btree\Node\Node;
+use Btree\Index\Btree\Node\NodeInterface;
 
 /**
  * Class Index
@@ -60,7 +61,8 @@ class Index implements IndexInterface
     {
         $key = $this->getKey($value);
 
-        $this->root = $this->root->searchLeaf($key)->insertKey($key, $value);
+        $this->root->searchLeaf($key)->insertKey($key, $value);
+        $this->root = $this->root->getRoot();
     }
 
     /**
@@ -91,17 +93,10 @@ class Index implements IndexInterface
      */
     public function delete(string $key): void
     {
-        $node = $this->root->searchNode($key);
+        $this->root->searchNode($key)->dropKey($key);
 
-        $node->dropKey($key);
-
-        if (!$node->parent) {
-            return;
-        }
-
-        if ($node->keyTotal < self::$nodeSize) {
-            $node->rebase();
-        }
+        $this->root = $this->root->getRoot();
+        $this->root->parent = null;
     }
 
     /**

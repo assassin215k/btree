@@ -137,4 +137,11 @@ class IndexedCollection implements IndexedCollectionInterface
             $this->indexes[array_key_first($this->indexes)]->printTree();
         }
     }
+
+    public function delete(string $key): void
+    {
+        foreach ($this->indexes as $index) {
+            $index->delete($key);
+        }
+    }
 }

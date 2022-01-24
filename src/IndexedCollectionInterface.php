@@ -26,5 +26,7 @@ interface IndexedCollectionInterface
 
     public function add(object $item): void;
 
+    public function delete(string $key): void;
+
     public function printFirstIndex(): void;
 }
