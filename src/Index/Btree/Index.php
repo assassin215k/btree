@@ -60,10 +60,7 @@ class Index implements IndexInterface
     {
         $key = $this->getKey($value);
 
-        $root = $this->root->searchLeaf($key)->insertKey($key, $value);
-        if ($root) {
-            $this->root = $root;
-        }
+        $this->root = $this->root->searchLeaf($key)->insertKey($key, $value);
     }
 
     /**
@@ -90,6 +87,26 @@ class Index implements IndexInterface
     /**
      * @param string $key
      *
+     * @return void
+     */
+    public function delete(string $key): void
+    {
+        $node = $this->root->searchNode($key);
+
+        $node->dropKey($key);
+
+        if (!$node->parent) {
+            return;
+        }
+
+        if ($node->keyTotal < self::$nodeSize) {
+            $node->rebase();
+        }
+    }
+
+    /**
+     * @param string $key
+     *
      * @return array
      */
     public function search(string $key): array
@@ -102,5 +119,66 @@ class Index implements IndexInterface
     public function printTree(): void
     {
         $this->root->traverse();
+    }
+
+    /**
+     * todo unrealized method
+     *
+     * @param string $key
+     *
+     * @return array
+     */
+    public function lessThan(string $key): array
+    {
+        return [];
+    }
+
+    /**
+     * todo unrealized method
+     *
+     * @param string $key
+     *
+     * @return array
+     */
+    public function lessThanOrEqual(string $key): array
+    {
+        return [];
+    }
+
+    /**
+     * todo unrealized method
+     *
+     * @param string $key
+     *
+     * @return array
+     */
+    public function graterThan(string $key): array
+    {
+        return [];
+    }
+
+    /**
+     * todo unrealized method
+     *
+     * @param string $key
+     *
+     * @return array
+     */
+    public function graterThanOrEqual(string $key): array
+    {
+        return [];
+    }
+
+    /**
+     * todo unrealized method
+     *
+     * @param string $form
+     * @param string $to
+     *
+     * @return array
+     */
+    public function between(string $form, string $to): array
+    {
+        return [];
     }
 }

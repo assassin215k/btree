@@ -31,9 +31,6 @@ $data = [
     new Person('Alex', 21),
 ];
 
-//echo phpinfo();
-//die;
-
 $collection = new IndexedCollection($data, 3);
 $collection->addIndex(['name']);
 $collection->printFirstIndex();
@@ -44,6 +41,7 @@ $collection->add(new Person('Sofia', 18));
 $collection->printFirstIndex();
 
 var_dump($collection->findKey('Lisa'));
+var_dump($collection->findKey('Ololo'));
 
 //var_dump($collection);
 echo "=====","\n";
