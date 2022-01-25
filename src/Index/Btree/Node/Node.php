@@ -338,6 +338,13 @@ final class Node implements NodeInterface
         $next->keyTotal = $this->keyTotal - $this->degree;
         $this->keyTotal = $this->degree;
 
+        if (!$next->isLeaf) {
+            foreach ($next->keys as $nextChild) {
+                $nextChild->parent = $next;
+            }
+        }
+
+
         /**
          * Added top key of new node to self
          */
