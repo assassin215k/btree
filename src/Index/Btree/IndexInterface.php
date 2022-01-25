@@ -11,6 +11,8 @@ namespace Btree\Index\Btree;
  */
 interface IndexInterface
 {
+    public function __construct(array | string $fields);
+
     public function insert(object $value): void;
 
     public function delete(string $key): void;

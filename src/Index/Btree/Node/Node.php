@@ -13,6 +13,8 @@ final class Node implements NodeInterface
     public ?Node $nextNode = null;
     public ?Node $parent = null;
 
+    private int $id = 1;
+
     /**
      * @var string key to link into parent
      */
@@ -38,6 +40,11 @@ final class Node implements NodeInterface
      */
     public function __construct(private readonly int $degree, private readonly bool $isLeaf = true)
     {
+        static $id;
+        if (!$id) {
+            $id = 0;
+        }
+        $this->id = ++$id;
     }
 
     /**
@@ -77,11 +84,11 @@ final class Node implements NodeInterface
     public function searchNode($key, bool $leaf = true): Node
     {
         if ($this->isLeaf) {
-            return ($leaf) ? $this : $this->parent;
+            return $leaf ? $this : $this->parent;
         }
 
         if (array_key_exists($key, $this->keys)) {
-            return $this->keys[$key];
+            return $this->keys[$key]->searchNode($key, $leaf);
         }
 
         foreach ($this->keys as $k => $node) {
@@ -90,7 +97,7 @@ final class Node implements NodeInterface
             }
         }
 
-        return $this;
+        return $this->searchNode($key, $leaf);
     }
 
     /**
@@ -121,12 +128,9 @@ final class Node implements NodeInterface
     public function dropKey(string $key): void
     {
         if (!$this->isLeaf) {
-            $this->searchLeaf($key)->dropKey($key);
+            $node = $this->searchLeaf($key);
+            $node->dropKey($key);
 
-            return;
-        }
-
-        if (!$this->hasKey($key)) {
             return;
         }
 
@@ -142,7 +146,8 @@ final class Node implements NodeInterface
 
         $this->parent->updateKey($oldKey, $this->key);
 
-        $this->parent->merge($this);
+        $this->merge();
+//        $this->parent->merge($this);
     }
 
     /**
@@ -159,7 +164,7 @@ final class Node implements NodeInterface
         }
 
         if (array_key_exists($key, $this->keys)) {
-            return $this->keys[$key];
+            return $this->keys[$key]->searchLeaf($key);
         }
 
         $targetKey = array_key_first($this->keys);
@@ -170,7 +175,7 @@ final class Node implements NodeInterface
             }
         }
 
-        return $this->keys[$targetKey];
+        return $this->keys[$targetKey]->searchLeaf($key);
     }
 
     /**
@@ -198,6 +203,8 @@ final class Node implements NodeInterface
                     + array_slice($this->keys, $i, $this->keyTotal - $i, true);
                 $this->key = array_key_first($this->keys);
 
+                $this->parent?->updateKey($oldNodeKey, $this->key);
+
                 return;
             }
 
@@ -206,6 +213,8 @@ final class Node implements NodeInterface
 
         $this->keys += $newValue;
         $this->key = array_key_first($this->keys);
+
+        $this->parent?->updateKey($oldNodeKey, $this->key);
     }
 
     /**
@@ -215,31 +224,32 @@ final class Node implements NodeInterface
      *
      * @return void
      */
-    private function merge(Node $node): void
+//    private function merge(Node $node): void
+    private function merge(): void
     {
-        if ($node->degree - 1 < $node->keyTotal) {
+        if ($this->degree - 1 < $this->keyTotal) {
             return;
         }
 
-        if ($node->prevNode) {
-            $node->prevNode->nextNode = $node->nextNode;
+        if ($this->prevNode) {
+            $this->prevNode->nextNode = $this->nextNode;
         }
 
-        if ($node->nextNode) {
-            $node->nextNode->prevNode = $node->prevNode;
+        if ($this->nextNode) {
+            $this->nextNode->prevNode = $this->prevNode;
         }
 
-        unset($this->keys[$node->key]);
-        $this->keyTotal--;
+        unset($this->parent->keys[$this->key]);
+        $this->parent->keyTotal--;
 
         /**
          * Move keys to previous node
          */
-        if ($node->prevNode && $node->prevNode->keyTotal < $node->degree) {
-            $node->prevNode->keys = $node->prevNode->keys + $node->keys;
-            $node->prevNode->keyTotal += $node->keyTotal;
+        if ($this->prevNode && $this->prevNode->keyTotal < $this->degree) {
+            $this->prevNode->keys = $this->prevNode->keys + $this->keys;
+            $this->prevNode->keyTotal += $this->keyTotal;
 
-            unset($node);
+//            $this->prevNode->checkParent();
 
             return;
         }
@@ -247,42 +257,51 @@ final class Node implements NodeInterface
         /**
          * Move keys to next node
          */
-        if ($node->nextNode && $node->nextNode->keyTotal < $node->degree) {
-            $node->nextNode->keys = $node->keys + $node->nextNode->keys;
-            $node->nextNode->keyTotal += $node->keyTotal;
+        if ($this->nextNode && $this->nextNode->keyTotal < $this->degree) {
+            $this->nextNode->keys = $this->keys + $this->nextNode->keys;
+            $this->nextNode->keyTotal += $this->keyTotal;
 
-            $oldKey = $node->nextNode->key;
-            $node->nextNode->key = $node->key;
+            $oldKey = $this->nextNode->key;
+            $this->nextNode->key = $this->key;
 
-            $node->nextNode?->parent->updateKey($oldKey, $node->nextNode->key);
+//            $this->nextNode->checkParent();
 
-            unset($node);
+            $this->nextNode?->parent->updateKey($oldKey, $this->nextNode->key);
 
             return;
         }
 
-        if ($node->prevNode) {
-            $nodeToUpdate = $node->prevNode;
-            $nodeToUpdate->keys = $nodeToUpdate->keys + $node->keys;
-            $nodeToUpdate->keyTotal += $node->keyTotal;
+        if ($this->prevNode) {
+            $nodeToUpdate = $this->prevNode;
+            $nodeToUpdate->keys = $nodeToUpdate->keys + $this->keys;
+            $nodeToUpdate->keyTotal += $this->keyTotal;
+
+//            $nodeToUpdate->checkParent();
 
             $nodeToUpdate->split();
 
             return;
         }
 
-        if ($node->nextNode) {
-            $nodeToUpdate = $node->nextNode;
-            $nodeToUpdate->keys = $node->keys + $nodeToUpdate->keys;
-            $nodeToUpdate->keyTotal += $node->keyTotal;
+        if ($this->nextNode) {
+            $nodeToUpdate = $this->nextNode;
+            $nodeToUpdate->keys = $this->keys + $nodeToUpdate->keys;
+            $nodeToUpdate->keyTotal += $this->keyTotal;
             $oldKey = $nodeToUpdate->key;
-            $nodeToUpdate->key = $node->key;
+            $nodeToUpdate->key = $this->key;
+
+//            $nodeToUpdate->checkParent();
 
             $nodeToUpdate?->parent->updateKey($oldKey, $nodeToUpdate->key);
 
             $nodeToUpdate->split();
+        }
+    }
 
-            return;
+    private function checkParent(): void
+    {
+        if ($this->parent && !$this->parent->keyTotal) {
+            $this->parent = $this->parent->parent;
         }
     }
 
@@ -336,8 +355,6 @@ final class Node implements NodeInterface
          */
         $parent->insertKey($next->key, $next);
 
-        $parent->split();
-
         /**
          * Linked next and prev leafs
          */
@@ -360,12 +377,15 @@ final class Node implements NodeInterface
      *
      * @param string $key
      * @param object $value
-     *
-     * @return NodeInterface|null
      */
     public function insertKey(string $key, object $value): void
     {
+        $oldNodeKey = $this->key ?? false;
         $this->insert($key, $value);
+
+        if ($oldNodeKey && $oldNodeKey !== $this->key) {
+            $this->parent?->updateKey($oldNodeKey, $this->key);
+        }
 
         $this->split();
     }

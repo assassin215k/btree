@@ -1,6 +1,6 @@
 <?php
 
-namespace Btree\Builder;
+namespace Btree\Builder\Enum;
 
 /**
  * Enum IndexSortOrder

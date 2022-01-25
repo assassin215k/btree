@@ -2,13 +2,13 @@
 
 namespace Btree;
 
-use Btree\Algorithm\IndexAlgorithm;
+use Btree\Builder\Builder;
+use Btree\Builder\BuilderInterface;
 use Btree\Exception\IndexDuplicationException;
 use Btree\Exception\IndexMissingException;
-use Btree\Exception\WrongClassException;
 use Btree\Helper\IndexHelper;
+use Btree\Index\Btree\Index;
 use Btree\Index\Btree\IndexInterface;
-use Btree\Builder\EnumSort;
 
 /**
  * Class IndexedCollection
@@ -19,15 +19,13 @@ use Btree\Builder\EnumSort;
  */
 class IndexedCollection implements IndexedCollectionInterface
 {
+    public static string $defaultIndexClass = Index::class;
+    public static string $defaultBuilderClass = Builder::class;
+
     /**
      * @var IndexInterface[]
      */
     private array $indexes = [];
-
-    /**
-     * @var array of pare key => order
-     */
-    private array $sortOrder = [];
 
     /**
      * Create a new collection Instance
@@ -40,25 +38,19 @@ class IndexedCollection implements IndexedCollectionInterface
 
     /**
      * @throws IndexDuplicationException
-     * @throws WrongClassException
-     *
-     * @param bool $replace
      *
      * @param string|array $fieldName
-     * @param IndexAlgorithm $algorithm
+     * @param IndexInterface|null $index
      */
-    public function addIndex(string | array $fieldName, IndexAlgorithm $algorithm = IndexAlgorithm::BTREE): void
+    public function addIndex(string | array $fieldName, IndexInterface $index = null): void
     {
         $indexKey = IndexHelper::getIndexName($fieldName);
         if (key_exists($indexKey, $this->indexes)) {
             throw new IndexDuplicationException($indexKey);
         }
 
-        $indexClass = IndexAlgorithm::getIndexClass($algorithm);
-        $index = new $indexClass($fieldName);
-
-        if (!$index instanceof IndexInterface) {
-            throw new WrongClassException($algorithm::class);
+        if (!$index) {
+            $index = new self::$defaultIndexClass($fieldName);
         }
 
         $this->indexes[$indexKey] = $index;
@@ -87,42 +79,6 @@ class IndexedCollection implements IndexedCollectionInterface
         unset($this->indexes[$indexKey]);
     }
 
-    /**
-     * @param string $field
-     * @param EnumSort $order
-     *
-     * @return $this
-     */
-    public function sortBy(string $field, EnumSort $order): self
-    {
-        $this->sortOrder = [$field => $order];
-
-        return $this;
-    }
-
-    /**
-     * @param string $field
-     * @param EnumSort $order
-     *
-     * @return $this
-     */
-    public function addSortBy(string $field, EnumSort $order): self
-    {
-        $this->sortOrder = array_merge($this->sortOrder, [$field => $order]);
-
-        return $this;
-    }
-
-    public function search(array $where): array
-    {
-        return [];
-    }
-
-    public function findKey(string $key): array
-    {
-        return $this->indexes[array_key_first($this->indexes)]->search($key);
-    }
-
     public function add(object $item): void
     {
         $this->data[] = $item;
@@ -143,5 +99,13 @@ class IndexedCollection implements IndexedCollectionInterface
         foreach ($this->indexes as $index) {
             $index->delete($key);
         }
+    }
+
+    /**
+     * @return BuilderInterface
+     */
+    public function createBuilder(): BuilderInterface
+    {
+        return new self::$defaultBuilderClass();
     }
 }

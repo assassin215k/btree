@@ -31,7 +31,8 @@ $data = [
     new Person('Alex', 21),
 ];
 
-$collection = new IndexedCollection($data, 3);
+\Btree\Index\Btree\Index::$nodeSize = 2;
+$collection = new IndexedCollection($data);
 $collection->addIndex(['name']);
 //$collection->printFirstIndex();
 echo "=====","\n";
@@ -44,6 +45,7 @@ $collection->delete('Owen');
 //$collection->delete('Alex');
 $collection->delete('Sofia');
 $collection->delete('Roman');
+die;
 $collection->delete('Peter');
 $collection->delete('Olga');
 $collection->delete('Lisa');

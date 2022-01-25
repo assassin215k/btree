@@ -2,8 +2,9 @@
 
 namespace Btree;
 
-use Btree\Algorithm\IndexAlgorithm;
-use Btree\Builder\EnumSort;
+use Btree\Enum\IndexEnum;
+use Btree\Builder\BuilderInterface;
+use Btree\Index\Btree\IndexInterface;
 
 /**
  * Interface IndexedCollectionInterface
@@ -14,19 +15,15 @@ use Btree\Builder\EnumSort;
  */
 interface IndexedCollectionInterface
 {
-    public function addIndex(string|array $fieldName, IndexAlgorithm $algorithm): void;
+    public function addIndex(string | array $fieldName, IndexInterface $index): void;
 
-    public function dropIndex(string|array $fieldName): void;
-
-    public function sortBy(string $field, EnumSort $order): self;
-
-    public function addSortBy(string $field, EnumSort $order): self;
-
-    public function search(array $where): array;
+    public function dropIndex(string | array $fieldName): void;
 
     public function add(object $item): void;
 
     public function delete(string $key): void;
 
     public function printFirstIndex(): void;
+
+    public function createBuilder(): BuilderInterface;
 }

@@ -4,6 +4,7 @@ namespace Btree\Index\Btree;
 
 use Btree\Exception\MissedFieldException;
 use Btree\Exception\MissedPropertyException;
+use Btree\Exception\WrongOptionException;
 use Btree\Index\Btree\Node\Node;
 use Btree\Index\Btree\Node\NodeInterface;
 
@@ -16,7 +17,7 @@ use Btree\Index\Btree\Node\NodeInterface;
  */
 class Index implements IndexInterface
 {
-    public static int $nodeSize;
+    public static int $nodeSize = 3;
 
     private ?Node $root = null;
 
@@ -28,13 +29,10 @@ class Index implements IndexInterface
     /**
      * @throws MissedFieldException
      *
-     * @param int $nodeSize
      * @param array|string $fields
      */
-    public function __construct(array | string $fields, int $nodeSize = 3)
+    public function __construct(array | string $fields)
     {
-        self::$nodeSize = $nodeSize;
-
         $this->fields = is_array($fields) ? $fields : [$fields];
 
         if (!count($this->fields)) {
@@ -93,7 +91,7 @@ class Index implements IndexInterface
      */
     public function delete(string $key): void
     {
-        $this->root->searchNode($key)->dropKey($key);
+        $this->root->dropKey($key);
 
         $this->root = $this->root->getRoot();
         $this->root->parent = null;
