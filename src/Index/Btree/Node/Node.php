@@ -45,8 +45,12 @@ final class Node implements NodeInterface
      * @param int $degree Minimum degree (defines the range for number of keys)
      * @param bool $isLeaf Is true when node is a leaf
      */
-    public function __construct(public bool $isLeaf = true, array $keys = null, int $keyTotal = null)
-    {
+    public function __construct(
+        public bool $isLeaf = true,
+        array $keys = null,
+        int $keyTotal = null,
+        int $nodeTotal = null
+    ) {
         static $id;
 
         $this->id = ++$id;
@@ -54,6 +58,10 @@ final class Node implements NodeInterface
         if ($keys) {
             $this->keys = $keys;
             $this->keyTotal = $keyTotal ?? count($keys);
+        }
+
+        if ($nodeTotal) {
+            $this->nodeTotal = $nodeTotal;
         }
     }
 
@@ -137,13 +145,15 @@ final class Node implements NodeInterface
     }
 
     /**
+     * Get last part of key, should be degree - 1
+     *
      * @param int $position
      *
      * @return array
      */
     public function splitKeys(int $position): array
     {
-        $this->keyTotal = $this->keyTotal - $position + 1;
+        $this->keyTotal = ceil($this->keyTotal / 2);
 
         return array_splice($this->keys, $position);
     }
@@ -165,46 +175,25 @@ final class Node implements NodeInterface
     }
 
     /**
-     * @param $key
-     * @param bool $leaf
+     * @param string $key
+     * @param int|null $nodeTotal
+     * @param array|null $keys
      *
-     * @return $this
+     * @return string
      */
-    public function searchNode($key): NodeInterface
+    public function getChildNodeKey(string $key, int $nodeTotal = null, array $keys = null): string
     {
-        if ($this->isLeaf) {
-            return $this;
+        if (is_null($nodeTotal)) {
+            $nodeTotal = $this->nodeTotal;
         }
 
-        return $this->searchNode($key);
-    }
+        if (is_null($keys)) {
+            $keys = $this->keys;
+        }
 
-    /**
-     * @param string $key
-     *
-     * @return string
-     */
-    public function getChildNodeKey(string $key): string
-    {
-        return $this->search($key, $this->nodeTotal, $this->keys);
-    }
-
-    /**
-     * @param string $key
-     * @param int $nodeTotal
-     * @param array $keys
-     *
-     * @return string
-     */
-    private function search(string $key, int $nodeTotal, array $keys): string
-    {
         if ($nodeTotal === 1) {
             return array_key_first($keys);
         }
-
-        $toMiddle = $nodeTotal % 2 ? $nodeTotal : $nodeTotal + 1;
-        /** @var NodeInterface[] $middle */
-        $middle = array_slice($keys, $toMiddle, 1);
 
         if ($nodeTotal === 2) {
             $keyList = array_keys($keys);
@@ -212,35 +201,22 @@ final class Node implements NodeInterface
             return $keyList[1] < $key ? $keyList[0] : $keyList[2];
         }
 
-        $nodeTotal = intdiv($nodeTotal, 2);
+        $toMiddle = $nodeTotal % 2 ? $nodeTotal : $nodeTotal - 1;
+        $newNodeTotal = intdiv($nodeTotal, 2);
 
+        /** @var NodeInterface[] $middle */
+        $middle = array_slice($keys, $toMiddle, 1);
         $middleKey = array_key_first($middle);
 
         if ($middleKey < $key) {
-            return $this->search($key, $toMiddle - $nodeTotal, array_slice($keys, 0, $toMiddle, true));
+            return $this->getChildNodeKey($key, $nodeTotal - $newNodeTotal, array_slice($keys, 0, $toMiddle, true));
         }
 
-        return $this->search($key, $nodeTotal, array_slice($keys, $toMiddle + $nodeTotal, preserve_keys: true));
-    }
-
-    /**
-     * traverse and print all nodes in a subtree rooted with this node
-     *
-     * @return void
-     */
-    public function traverse(): void
-    {
-        if ($this->isLeaf) {
-            foreach ($this->keys as $key => $values) {
-                echo "$key: " . count($values) . PHP_EOL;
-            }
-
-            return;
-        }
-
-        foreach ($this->keys as $node) {
-            $node->traverse();
-        }
+        return $this->getChildNodeKey(
+            $key,
+            $nodeTotal,
+            array_slice($keys, $newNodeTotal, preserve_keys: true)
+        );
     }
 
     /**
@@ -252,7 +228,7 @@ final class Node implements NodeInterface
      */
     public function insertKey(string $key, object $value, int $position = null): void
     {
-        if (array_key_exists($key, $this->keys)) {
+        if ($this->hasKey($key)) {
             $this->keys[$key]->add($value);
 
             return;
@@ -274,6 +250,11 @@ final class Node implements NodeInterface
         $this->keyTotal++;
     }
 
+    public function hasKey(string $key): bool
+    {
+        return array_key_exists($key, $this->keys);
+    }
+
     /**
      * Search position for new value
      *
@@ -293,10 +274,5 @@ final class Node implements NodeInterface
         }
 
         return $i;
-    }
-
-    public function hasKey(string $key): bool
-    {
-        return array_key_exists($key, $this->keys);
     }
 }

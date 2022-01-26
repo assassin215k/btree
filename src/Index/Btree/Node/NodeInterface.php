@@ -31,9 +31,5 @@ interface NodeInterface
 
     public function insertKey(string $key, object $value, int $position = null): void;
 
-    public function searchNode(string $key): NodeInterface;
-
     public function getChildNodeKey(string $key): string;
-
-    public function traverse(): void;
 }
