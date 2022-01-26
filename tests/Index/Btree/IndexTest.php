@@ -1,19 +1,17 @@
 <?php
-/**
- * Created by PhpStorm.
- * Author: Ihor Fedan
- * Date: 26.01.22
- * Time: 22:27
- */
 
 namespace Btree\Test\Index\Btree;
 
 use Btree\Exception\MissedFieldException;
+use Btree\Exception\MissedPropertyException;
 use Btree\Index\Btree\Index;
-use Btree\Index\Btree\Node\NodeInterface;
-use Mockery;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Test of Index Class
+ *
+ * @package assassin215k/btree
+ */
 class IndexTest extends TestCase
 {
     private array $data;
@@ -38,21 +36,30 @@ class IndexTest extends TestCase
 
     public function testConstruct()
     {
-        $this->expectException(MissedFieldException::class);
-        $index = new Index([]);
-
-        $this->expectException(MissedFieldException::class);
-        $index = new Index('');
-
-        $this->expectException(MissedFieldException::class);
-        $index = new Index(['asd', '']);
-
         $index = new Index('asd');
         $this->assertSame(100, $index::$nodeSize);
 
         Index::$nodeSize = 3;
         $index = new Index('asd');
         $this->assertSame(3, $index::$nodeSize);
+    }
+
+    public function testConstructMissedFields()
+    {
+        $this->expectException(MissedFieldException::class);
+        new Index([]);
+    }
+
+    public function testConstructEmptyField()
+    {
+        $this->expectException(MissedFieldException::class);
+        new Index('');
+    }
+
+    public function testConstructEmptyFields()
+    {
+        $this->expectException(MissedFieldException::class);
+        new Index(['asd', '']);
     }
 
     public function testInsert()
@@ -63,7 +70,11 @@ class IndexTest extends TestCase
             $index->insert($person);
         }
 
-        $this->assertTrue(true);
+        $index->insert($this->data[0]);
+
+        $this->expectException(MissedPropertyException::class);
+        $index->insert(new \DateTime());
+
         //todo added check via search
     }
 //
