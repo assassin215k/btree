@@ -108,4 +108,13 @@ class IndexedCollection implements IndexedCollectionInterface
     {
         return new self::$defaultBuilderClass();
     }
+
+    public function search(string $key): array
+    {
+        if (array_key_first($this->indexes)) {
+            $this->indexes[array_key_first($this->indexes)]->search($key);
+        }
+
+        return [];
+    }
 }

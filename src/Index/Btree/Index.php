@@ -4,7 +4,7 @@ namespace Btree\Index\Btree;
 
 use Btree\Exception\MissedFieldException;
 use Btree\Exception\MissedPropertyException;
-use Btree\Exception\WrongOptionException;
+use Btree\Index\Btree\Node\Data\DataInterface;
 use Btree\Index\Btree\Node\Node;
 use Btree\Index\Btree\Node\NodeInterface;
 
@@ -13,11 +13,15 @@ use Btree\Index\Btree\Node\NodeInterface;
  *
  * Index to contain index cache
  *
+ * All nodes key start from N< or N>
+ * All data keys start from K-
+ *
  * @package assassin215k/btree
  */
 class Index implements IndexInterface
 {
-    public static int $nodeSize = 3;
+    public static int $nodeSize = 100;
+    private readonly int $degree;
 
     private ?Node $root = null;
 
@@ -45,7 +49,9 @@ class Index implements IndexInterface
             }
         }
 
-        $this->root = new Node(self::$nodeSize, true);
+        $this->degree = self::$nodeSize;
+
+        $this->root = new Node();
     }
 
     /**
@@ -59,8 +65,13 @@ class Index implements IndexInterface
     {
         $key = $this->getKey($value);
 
-        $this->root->searchLeaf($key)->insertKey($key, $value);
-        $this->root = $this->root->getRoot();
+        $this->insertToNode($this->root, $key, $value);
+
+        if ($this->root->count() === $this->degree * 2 - 1) {
+            $arrayToReplace = $this->splitRoot($this->root);
+            $this->root->replaceKey($arrayToReplace, fullReplace: true);
+            $this->root->setLeaf(false);
+        }
     }
 
     /**
@@ -72,7 +83,7 @@ class Index implements IndexInterface
      */
     private function getKey(object $value): string
     {
-        $key = '';
+        $key = 'K-';
         foreach ($this->fields as $field) {
             if (empty($value->$field)) {
                 throw new MissedPropertyException($field, $value);
@@ -85,16 +96,78 @@ class Index implements IndexInterface
     }
 
     /**
+     * Insert to non root Node
+     *
+     * @param NodeInterface $node
+     * @param string $key
+     * @param object $value
+     *
+     * @return void
+     */
+    private function insertToNode(NodeInterface $node, string $key, object $value): void
+    {
+        if ($node->hasKey($key)) {
+            $node->insertKey($key, $value);
+
+            return;
+        }
+
+        if ($node->isLeaf()) {
+            $node->insertKey($key, $value);
+
+            return;
+        }
+
+        $position = $node->getChildNodeKey($key);
+        $child = $node->getNodeByKey($position);
+
+        $this->insertToNode($child, $key, $value);
+
+        if ($child->count() === $this->degree * 2 - 1) {
+            $arrayToReplace = $this->splitRoot($child);
+            $node->replaceKey($arrayToReplace, $position);
+        }
+    }
+
+    /**
+     * Split full Node
+     *
+     * @param Node $node
+     *
+     * @return array
+     */
+    private function splitRoot(Node $node): array
+    {
+        $nextNode = new Node($node->isLeaf(), $node->splitKeys($this->degree), $this->degree - 1);
+
+        /** @var DataInterface $value */
+        $medianValue = $node->extractLast();
+        $key = array_key_first($medianValue);
+
+        $lKey = substr($key, 2);
+
+        /**
+         * All nodes key start from N< or N>
+         * All Keys start from K-
+         */
+        return [
+            "N<$lKey" => new Node($node->isLeaf(), $node->getKeys(), $node->keyTotal),
+            $key => $medianValue[$key],
+            "N>$lKey" => $nextNode
+        ];
+    }
+
+    /**
      * @param string $key
      *
      * @return void
      */
     public function delete(string $key): void
     {
-        $this->root->dropKey($key);
-
-        $this->root = $this->root->getRoot();
-        $this->root->parent = null;
+//        $this->root->dropKey($key);
+//
+//        $this->root = $this->root->getRoot();
+//        $this->root->parent = null;
     }
 
     /**
@@ -104,9 +177,10 @@ class Index implements IndexInterface
      */
     public function search(string $key): array
     {
-        $node = $this->root->searchNode($key);
-
-        return $node->selectKey($key);
+//        $node = $this->root->searchNode($key);
+//
+//        return $node->selectKey($key);
+        return [];
     }
 
     public function printTree(): void

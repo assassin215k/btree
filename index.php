@@ -31,28 +31,14 @@ $data = [
     new Person('Alex', 21),
 ];
 
-\Btree\Index\Btree\Index::$nodeSize = 2;
+//for ($i = 5;$i < 1000;$i++) {
+//    $data[] = new Person('User', $i);
+//}
+
+\Btree\Index\Btree\Index::$nodeSize = 3;
 $collection = new IndexedCollection($data);
-$collection->addIndex(['name']);
-//$collection->printFirstIndex();
+$collection->addIndex(['name', 'age']);
 echo "=====","\n";
 
-//$collection->addSortBy('name', IndexSortOrder::DESC);
 $collection->add(new Person('Sofia', 18));
-//$collection->printFirstIndex();
-
-$collection->delete('Owen');
-//$collection->delete('Alex');
-$collection->delete('Sofia');
-$collection->delete('Roman');
-$collection->delete('Peter');
-//die;
-$collection->delete('Olga');
-$collection->delete('Lisa');
-$collection->delete('Ivan');
-
-//var_dump($collection->findKey('Lisa'));
-//var_dump($collection->findKey('Ololo'));
-
-//var_dump($collection);
 echo "=====","\n";
