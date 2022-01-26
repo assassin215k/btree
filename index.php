@@ -2,19 +2,9 @@
 
 require_once 'vendor/autoload.php';
 
+use Btree\Index\Btree\Index;
 use Btree\IndexedCollection;
-
-class Person
-{
-    public function __toString(): string
-    {
-        return $this->name;
-    }
-
-    public function __construct(public string $name, public int $age)
-    {
-    }
-}
+use Btree\Test\Index\Btree\Person;
 
 $data = [
     new Person('Olga', 28),
@@ -35,7 +25,7 @@ $data = [
 //    $data[] = new Person('User', $i);
 //}
 
-\Btree\Index\Btree\Index::$nodeSize = 3;
+Index::$nodeSize = 3;
 $collection = new IndexedCollection($data);
 $collection->addIndex(['name', 'age']);
 echo "=====","\n";

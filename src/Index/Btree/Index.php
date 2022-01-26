@@ -158,34 +158,34 @@ class Index implements IndexInterface
     }
 
     /**
+     * todo unrealized method
+     *
      * @param string $key
      *
      * @return void
      */
     public function delete(string $key): void
     {
-//        $this->root->dropKey($key);
-//
-//        $this->root = $this->root->getRoot();
-//        $this->root->parent = null;
     }
 
     /**
+     * todo unrealized method
      * @param string $key
      *
      * @return array
      */
     public function search(string $key): array
     {
-//        $node = $this->root->searchNode($key);
-//
-//        return $node->selectKey($key);
         return [];
     }
 
+    /**
+     * todo unrealized method
+     *
+     * @return void
+     */
     public function printTree(): void
     {
-        $this->root->traverse();
     }
 
     /**
