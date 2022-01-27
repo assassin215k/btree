@@ -90,7 +90,8 @@ class IndexedCollection implements IndexedCollectionInterface
     public function printFirstIndex(): void
     {
         if (array_key_first($this->indexes)) {
-            $this->indexes[array_key_first($this->indexes)]->printTree();
+            $tree = $this->indexes[array_key_first($this->indexes)]->printTree();
+            var_dump($tree);
         }
     }
 

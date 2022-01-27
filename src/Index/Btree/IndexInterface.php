@@ -29,5 +29,5 @@ interface IndexInterface
 
     public function between(string $form, string $to): array;
 
-    public function printTree(): void;
+    public function printTree(): string;
 }

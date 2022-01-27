@@ -126,6 +126,7 @@ class Index implements IndexInterface
         if ($child->count() === $this->degree * 2 - 1) {
             $arrayToReplace = $this->splitRoot($child);
             $node->replaceKey($arrayToReplace, $position);
+            unset($child);
         }
     }
 
@@ -138,21 +139,42 @@ class Index implements IndexInterface
      */
     private function splitRoot(Node $node): array
     {
-        $nextNode = new Node($node->isLeaf(), $node->splitKeys($this->degree), $this->degree - 1);
+        $keyTotal = intdiv($node->keyTotal, 2);
+        $nodeTotal = $node->nodeTotal / 2;
+        $position = $nodeTotal + (int)ceil($node->keyTotal / 2);
+        $keys = $node->getKeys();
+
+        $newKeys = array_splice($keys, $position);
+
+        $nextNode = new Node($node->isLeaf(), $newKeys, $keyTotal, $nodeTotal);
 
         /** @var DataInterface $value */
-        $medianValue = $node->extractLast();
-        $key = array_key_first($medianValue);
+        $medianKey = array_key_last($keys);
+        $medianValue = array_pop($keys);
 
-        $lKey = substr($key, 2);
+        $prevNode = new Node($node->isLeaf(), $keys, $keyTotal, $nodeTotal);
+        $prevNode->nextNode = $nextNode;
+        $nextNode->prevNode = $prevNode;
+
+        if ($node->nextNode) {
+            $nextNode->nextNode = $node->nextNode;
+            $node->nextNode->prevNode = $nextNode;
+        }
+
+        if ($node->prevNode) {
+            $prevNode->prevNode = $node->prevNode;
+            $node->prevNode->nextNode = $prevNode;
+        }
 
         /**
          * All nodes key start from N< or N>
          * All Keys start from K-
          */
+        $lKey = substr($medianKey, 2);
+
         return [
-            "N<$lKey" => new Node($node->isLeaf(), $node->getKeys(), $node->keyTotal),
-            $key => $medianValue[$key],
+            "N<$lKey" => $prevNode,
+            $medianKey => $medianValue,
             "N>$lKey" => $nextNode
         ];
     }
@@ -170,6 +192,7 @@ class Index implements IndexInterface
 
     /**
      * todo unrealized method
+     *
      * @param string $key
      *
      * @return array
@@ -180,12 +203,31 @@ class Index implements IndexInterface
     }
 
     /**
-     * todo unrealized method
+     * @param NodeInterface|null $node
+     * @param int $level
+     * @param string $key
      *
-     * @return void
+     * @return string
      */
-    public function printTree(): void
+    public function printTree(NodeInterface $node = null, int $level = 0, string $key = ''): string
     {
+        $level++;
+        $tree = '';
+
+        if (is_null($node)) {
+            $node = $this->root;
+            $tree .= PHP_EOL;
+        }
+
+        $tree .= str_pad('', $level * 5, '_') . $key . PHP_EOL;
+
+        foreach ($node->getKeys() as $key => $item) {
+            if ($item instanceof NodeInterface) {
+                $tree .= $this->printTree($item, $level, $key);
+            }
+        }
+
+        return $tree;
     }
 
     /**

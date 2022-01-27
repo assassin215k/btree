@@ -11,6 +11,8 @@ use Btree\Index\Btree\Node\Data\DataInterface;
  */
 interface NodeInterface
 {
+    public function getId(): int;
+
     public function isLeaf(): bool;
 
     public function setLeaf(bool $isLeaf): void;
@@ -24,8 +26,6 @@ interface NodeInterface
     public function hasKey(string $key): bool;
 
     public function count(): int;
-
-    public function splitKeys(int $position): array;
 
     public function extractLast(): array;
 

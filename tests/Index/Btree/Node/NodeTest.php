@@ -124,39 +124,6 @@ class NodeTest extends TestCase
         $this->assertSame(2, $this->node->count());
     }
 
-    public function testSplitKeys()
-    {
-        $keys = [
-            'K4' => $this->data,
-            'K3' => $this->data,
-            'K2' => $this->data,
-            'K1' => $this->data,
-        ];
-
-        $node = new Node(keys: $keys, keyTotal: 4);
-        $keys = $node->splitKeys(2);
-        $this->assertSame(2, count($keys));
-        $this->assertSame(2, count($node->getKeys()));
-        $this->assertSame(2, $node->keyTotal);
-
-        $keys = [
-            'K9' => $this->data,
-            'K8' => $this->data,
-            'K7' => $this->data,
-            'K6' => $this->data,
-            'K5' => $this->data,
-            'K4' => $this->data,
-            'K3' => $this->data,
-            'K2' => $this->data,
-            'K1' => $this->data,
-        ];
-
-        $node = new Node(keys: $keys, keyTotal: 9);
-        $keys = $node->splitKeys(5);
-        $this->assertSame(4, count($keys));
-        $this->assertSame(5, $node->keyTotal);
-    }
-
     public function testExtractLast()
     {
         $array = $this->node->extractLast();
@@ -210,7 +177,7 @@ class NodeTest extends TestCase
         $this->assertSame('N112', $node->getChildNodeKey('K1112'));
 
         $this->assertSame('N3', $node->getChildNodeKey('K333'));
-        $this->assertSame('N11', $node->getChildNodeKey('K0'));
+        $this->assertSame('N1', $node->getChildNodeKey('K0'));
 
         $node = new Node(false, ['K1' => new Node()], 0, 1);
         $this->assertSame('K1', $node->getChildNodeKey('K1'));

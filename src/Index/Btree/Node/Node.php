@@ -66,6 +66,14 @@ final class Node implements NodeInterface
     }
 
     /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    /**
      * @param string $index
      *
      * @return NodeInterface
@@ -107,7 +115,7 @@ final class Node implements NodeInterface
         $index = array_flip(array_keys($this->keys))[$key];
 
         $before = array_slice($this->keys, 0, $index, true);
-        $after = array_slice($this->keys, $index + 1, $this->keyTotal - $index + 1, true);
+        $after = array_slice($this->keys, $index + 1, preserve_keys:  true);
 
         $this->keys = $before
             + $array
@@ -142,20 +150,6 @@ final class Node implements NodeInterface
     public function count(): int
     {
         return $this->keyTotal;
-    }
-
-    /**
-     * Get last part of key, should be degree - 1
-     *
-     * @param int $position
-     *
-     * @return array
-     */
-    public function splitKeys(int $position): array
-    {
-        $this->keyTotal = ceil($this->keyTotal / 2);
-
-        return array_splice($this->keys, $position);
     }
 
     /**
