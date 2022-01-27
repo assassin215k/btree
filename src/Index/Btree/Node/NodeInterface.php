@@ -29,7 +29,23 @@ interface NodeInterface
 
     public function extractLast(): array;
 
+    public function extractFirst(): array;
+
     public function insertKey(string $key, object $value, int $position = null): void;
 
-    public function getChildNodeKey(string $key): string;
+    public function getChildNodeKey(string $key, bool $inverse = false): string;
+
+    public function dropKey(string $key): void;
+
+    public function replaceNextPrevKey(NodeInterface $child, bool $replacePrev): void;
+
+    public function replaceThreeWithOne(string $key, NodeInterface $node, array $keys, bool $next): void;
+
+    public function getPrevNode(): ?NodeInterface;
+
+    public function setPrevNode(?NodeInterface $node): void;
+
+    public function getNextNode(): ?NodeInterface;
+
+    public function setNextNode(?NodeInterface $node): void;
 }

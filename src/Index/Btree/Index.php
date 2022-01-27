@@ -81,9 +81,26 @@ class Index implements IndexInterface
      *
      * @return string
      */
-    private function getKey(object $value): string
+    private function getKey(string | object | array $value): string
     {
         $key = 'K-';
+
+        if (is_string($value)) {
+            return $key . $value;
+        }
+
+        if (is_array($value)) {
+            foreach ($this->fields as $field) {
+                if (!array_key_exists($field, $value)) {
+                    throw new MissedPropertyException($field, $value);
+                }
+
+                $key .= is_null($value[$field]) ? '_' : $value[$field];
+            }
+
+            return $key;
+        }
+
         foreach ($this->fields as $field) {
             if (empty($value->$field)) {
                 throw new MissedPropertyException($field, $value);
@@ -182,12 +199,99 @@ class Index implements IndexInterface
     /**
      * todo unrealized method
      *
-     * @param string $key
+     * @throws MissedPropertyException
+     *
+     * @param string|object|array $target
      *
      * @return void
      */
-    public function delete(string $key): void
+    public function delete(string | object | array $target): void
     {
+        $target = $this->getKey($target);
+
+        $this->deleteFromNode($this->root, $target);
+
+        if ($this->root->isLeaf()) {
+            return;
+        }
+
+        if ($this->root->nodeTotal > 1) {
+            return;
+        }
+
+        $this->root->setLeaf(true);
+
+        if ($this->root->nextNode && $this->root->nextNode->count() >= $this->degree) {
+        }
+    }
+
+    /**
+     * Insert to non root Node
+     *
+     * @param NodeInterface $node
+     * @param string $key
+     * @param object $value
+     *
+     * @return void
+     */
+    private function deleteFromNode(NodeInterface $node, string $key): void
+    {
+        if ($node->isLeaf()) {
+            if ($node->hasKey($key)) {
+                $node->dropKey($key);
+            }
+
+            return;
+        }
+
+        $position = $node->getChildNodeKey($key, true);
+        $child = $node->getNodeByKey($position);
+
+        $this->deleteFromNode($child, $key);
+        $prevNode = $child->getPrevNode();
+        if ($prevNode && $prevNode->count() >= $this->degree) {
+            $node->replaceNextPrevKey($child, true);
+
+            return;
+        }
+
+        $nextNode = $child->getNextNode();
+        if ($nextNode && $nextNode->count() >= $this->degree) {
+            $node->replaceNextPrevKey($child, false);
+
+            return;
+        }
+
+        if ($nextNode) {
+            $nodeKeys = array_flip(array_keys($node->getKeys()));
+            $prevK = array_slice($node->getKeys(), $nodeKeys[$position] + 1, 1, preserve_keys: true);
+
+            $total = $child->count() + $child->getNextNode()->count() + 1;
+
+            $keys = $child->getKeys() + $prevK + $child->getNextNode()->getKeys();
+            $newNode = new Node(keys: $keys, keyTotal: $total);
+            $newNode->setNextNode($child->getNextNode()->getNextNode());
+            $newNode->setPrevNode($child->getPrevNode());
+
+            $node->replaceThreeWithOne($position, $newNode, $nodeKeys, true);
+
+            return;
+        }
+
+        //!!!!
+        $nodeKeys = array_flip(array_keys($node->getKeys()));
+        $prevK = array_slice($node->getKeys(), $nodeKeys[$position] + 1, 1, preserve_keys: true);
+
+        // $prevNode
+        $keys = $child->getPrevNode()->getKeys() + $child->getKeys();
+        $total = $child->count() + $child->getPrevNode()->count();
+
+        $newNode = new Node(keys: $keys, keyTotal: $total);
+
+        $newNode->setNextNode($child->getNextNode());
+        $newNode->setPrevNode($child->getPrevNode()->getPrevNode());
+
+        $node->replaceThreeWithOne($position, $newNode, $nodeKeys, false);
     }
 
     /**
@@ -289,5 +393,9 @@ class Index implements IndexInterface
     public function between(string $form, string $to): array
     {
         return [];
+    }
+
+    private function mergeChildren()
+    {
     }
 }

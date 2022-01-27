@@ -2,6 +2,8 @@
 
 namespace Btree\Index\Btree;
 
+use Btree\Index\Btree\Node\NodeInterface;
+
 /**
  * Interface IndexInterface
  *
@@ -15,7 +17,7 @@ interface IndexInterface
 
     public function insert(object $value): void;
 
-    public function delete(string $key): void;
+    public function delete(string | object | array $target): void;
 
     public function search(string $key): array;
 

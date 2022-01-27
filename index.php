@@ -20,17 +20,25 @@ $data = [
     new Person('Lisa', 34),
     new Person('Alex', 21),
 ];
-$data = [];
-for ($i = 5;$i < 1000;$i++) {
-    $data[] = new Person('User', $i);
-}
+//$data = [];
+//for ($i = 5;$i < 1000;$i++) {
+//    $data[] = new Person('User', $i);
+//}
 
-Index::$nodeSize = 10;
+Index::$nodeSize = 3;
 $collection = new IndexedCollection($data);
-$collection->addIndex(['name', 'age']);
+//$collection->addIndex(['name', 'age']);
 echo "=====","\n";
 
 //$collection->add(new Person('Sofia', 18));
+
+//$collection->delete(['name' => 'Olga', 'age' => 18]);
+//$collection->delete(['name' => 'Olga', 'age' => 28]);
+//$collection->delete(['name' => 'Olga', 'age' => 28]);
+//$collection->delete(['name' => 'Olga', 'age' => 28]);
+//$collection->delete(['name' => 'Olga', 'age' => 28]);
+//$collection->delete(['name' => 'Olga', 'age' => 28]);
+//$collection->delete(['name' => 'Olga', 'age' => 28]);
 
 $collection->printFirstIndex();
 echo "=====","\n";

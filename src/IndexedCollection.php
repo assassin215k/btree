@@ -90,12 +90,11 @@ class IndexedCollection implements IndexedCollectionInterface
     public function printFirstIndex(): void
     {
         if (array_key_first($this->indexes)) {
-            $tree = $this->indexes[array_key_first($this->indexes)]->printTree();
-            var_dump($tree);
+            echo $this->indexes[array_key_first($this->indexes)]->printTree();
         }
     }
 
-    public function delete(string $key): void
+    public function delete(string | object | array $key): void
     {
         foreach ($this->indexes as $index) {
             $index->delete($key);
