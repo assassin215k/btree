@@ -33,9 +33,9 @@ interface NodeInterface
 
     public function insertKey(string $key, object $value, int $position = null): void;
 
-    public function getChildNodeKey(string $key, bool $inverse = false): string;
+    public function getChildNodeKey(string $key): string;
 
-    public function dropKey(string $key): void;
+    public function dropKey(string $key): DataInterface;
 
     public function replaceNextPrevKey(NodeInterface $child, bool $replacePrev): void;
 
@@ -48,4 +48,6 @@ interface NodeInterface
     public function getNextNode(): ?NodeInterface;
 
     public function setNextNode(?NodeInterface $node): void;
+
+    public function replaceKeyBetweenNodes(string $key): DataInterface;
 }

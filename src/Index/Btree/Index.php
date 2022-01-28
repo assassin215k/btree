@@ -209,7 +209,7 @@ class Index implements IndexInterface
     {
         $target = $this->getKey($target);
 
-        $this->deleteFromNode($this->root, $target);
+        $success = (bool)$this->deleteFromNode($this->root, $target);
 
         if ($this->root->isLeaf()) {
             return;
@@ -222,76 +222,91 @@ class Index implements IndexInterface
         $this->root->setLeaf(true);
 
         if ($this->root->nextNode && $this->root->nextNode->count() >= $this->degree) {
+            echo '';
         }
     }
 
     /**
-     * Insert to non root Node
+     * Delete key recursively
      *
      * @param NodeInterface $node
      * @param string $key
-     * @param object $value
      *
-     * @return void
+     * @return bool
      */
-    private function deleteFromNode(NodeInterface $node, string $key): void
+    private function deleteFromNode(NodeInterface $node, string $key): bool | DataInterface
     {
         if ($node->isLeaf()) {
             if ($node->hasKey($key)) {
-                $node->dropKey($key);
+                return $node->dropKey($key);
             }
 
-            return;
+            return false;
         }
 
-        $position = $node->getChildNodeKey($key, true);
+        if ($node->hasKey($key)) {
+            return $node->replaceKeyBetweenNodes($key);
+        }
+
+        $position = $node->getChildNodeKey($key);
         $child = $node->getNodeByKey($position);
 
-        $this->deleteFromNode($child, $key);
+        $deletedKey = $this->deleteFromNode($child, $key);
+        if (!$deletedKey) {
+            return false;
+        }
+
+        if ($child->count() >= $this->degree) {
+            return $deletedKey;
+        }
+
         $prevNode = $child->getPrevNode();
         if ($prevNode && $prevNode->count() >= $this->degree) {
             $node->replaceNextPrevKey($child, true);
 
-            return;
+            return $deletedKey;
         }
 
         $nextNode = $child->getNextNode();
         if ($nextNode && $nextNode->count() >= $this->degree) {
             $node->replaceNextPrevKey($child, false);
 
-            return;
+            return $deletedKey;
         }
 
         if ($nextNode) {
             $nodeKeys = array_flip(array_keys($node->getKeys()));
             $prevK = array_slice($node->getKeys(), $nodeKeys[$position] + 1, 1, preserve_keys: true);
 
-            $total = $child->count() + $child->getNextNode()->count() + 1;
+            $total = $child->count() + $nextNode->count() + 1;
 
-            $keys = $child->getKeys() + $prevK + $child->getNextNode()->getKeys();
+            $keys = $child->getKeys() + $prevK + $nextNode->getKeys();
             $newNode = new Node(keys: $keys, keyTotal: $total);
-            $newNode->setNextNode($child->getNextNode()->getNextNode());
+            $newNode->setNextNode($nextNode->getNextNode());
+            $nextNode->getNextNode()?->setPrevNode($newNode);
             $newNode->setPrevNode($child->getPrevNode());
+            $child->getPrevNode()?->setNextNode($newNode);
 
             $node->replaceThreeWithOne($position, $newNode, $nodeKeys, true);
 
-            return;
+            return $deletedKey;
         }
 
-        //!!!!
+        // Use prev Node
+        $prevNode = $child->getPrevNode();
         $nodeKeys = array_flip(array_keys($node->getKeys()));
-        $prevK = array_slice($node->getKeys(), $nodeKeys[$position] + 1, 1, preserve_keys: true);
+        $nextK = array_slice($node->getKeys(), $nodeKeys[$position] - 1, 1, preserve_keys: true);
 
-        // $prevNode
-        $keys = $child->getPrevNode()->getKeys() + $child->getKeys();
-        $total = $child->count() + $child->getPrevNode()->count();
+        $total = $child->count() + $prevNode->count() + 1;
 
+        $keys = $prevNode->getKeys() + $nextK + $child->getKeys();
         $newNode = new Node(keys: $keys, keyTotal: $total);
-
-        $newNode->setNextNode($child->getNextNode());
-        $newNode->setPrevNode($child->getPrevNode()->getPrevNode());
+        $newNode->setPrevNode($prevNode->getPrevNode());
+        $prevNode->getPrevNode()?->setNextNode($newNode);
 
         $node->replaceThreeWithOne($position, $newNode, $nodeKeys, false);
+
+        return $deletedKey;
     }
 
     /**

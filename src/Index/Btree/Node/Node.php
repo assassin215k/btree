@@ -148,12 +148,8 @@ final class Node implements NodeInterface
      *
      * @return string
      */
-    public function getChildNodeKey(
-        string $key,
-        bool $inverse = false,
-        int $nodeTotal = null,
-        array $keys = null
-    ): string {
+    public function getChildNodeKey(string $key, int $nodeTotal = null, array $keys = null): string
+    {
         if (is_null($nodeTotal)) {
             $nodeTotal = $this->nodeTotal;
         }
@@ -174,26 +170,26 @@ final class Node implements NodeInterface
 
         $toMiddle = $nodeTotal % 2 ? $nodeTotal : $nodeTotal - 1;
         $newNodeTotal = intval($nodeTotal / 2);
+        if ($nodeTotal % 2) {
+            $newNodeTotal++;
+        }
 
         /** @var NodeInterface[] $middle */
         $middle = array_slice($keys, $toMiddle, 1);
         $middleKey = array_key_first($middle);
 
-        $check = $inverse ? $middleKey > $key : $middleKey < $key;
-        if ($check) {
+        if ($middleKey < $key) {
             return $this->getChildNodeKey(
                 $key,
-                $inverse,
-                $nodeTotal - $newNodeTotal,
+                $newNodeTotal,
                 array_slice($keys, 0, $toMiddle, true)
             );
         }
 
         return $this->getChildNodeKey(
             $key,
-            $inverse,
-            $nodeTotal,
-            array_slice($keys, $newNodeTotal, preserve_keys: true)
+            $nodeTotal - $newNodeTotal,
+            array_slice($keys, $toMiddle + 1, preserve_keys: true)
         );
     }
 
@@ -209,9 +205,11 @@ final class Node implements NodeInterface
      */
     public function replaceNextPrevKey(NodeInterface $child, bool $replacePrev): void
     {
+        // Get a key to move
         $lastItem = $replacePrev ? $child->prevNode->extractLast() : $child->nextNode->extractFirst();
         $lastKey = array_key_first($lastItem);
 
+        // Get a node to replace
         $target = $this->searchKeyPrev($lastKey, $replacePrev);
         $key = array_key_first($target);
         $child->insertKey($key, $target[$key], 0);
@@ -251,6 +249,8 @@ final class Node implements NodeInterface
     }
 
     /**
+     * Search a key to replace with new middle key
+     *
      * @param string $key
      * @param bool $prev
      * @param array|null $keys
@@ -263,9 +263,9 @@ final class Node implements NodeInterface
         if (is_null($keys)) {
             $keys = $this->keys;
 
-            if (!$prev) {
-                $keys = array_flip($keys);
-            }
+//            if (!$prev) {
+//                $keys = array_reverse($keys);
+//            }
         }
 
         if (is_null($total)) {
@@ -273,13 +273,29 @@ final class Node implements NodeInterface
         }
 
         if ($total === 1) {
-            return array_slice($keys, 1, 1, true);
+            if ($prev) {
+                return array_slice($keys, 1, 1, true);
+            }
+
+            return array_slice($keys, 0, 1, true);
         }
 
-        $slicedKeys = array_slice($keys, 0, $total, true);
+        $full = $total * 2 + 1;
+        $offset = ($total % 2) ? intval($full / 2) : ceil($full / 2);
 
+        if ($prev) {
+            $slicedKeys = array_slice($keys, 0, $offset - 1, preserve_keys: true);
+
+            if (array_key_last($slicedKeys) > $key) {
+                $slicedKeys = array_slice($keys, $offset - 1, preserve_keys: true);
+            }
+
+            return $this->searchKeyPrev($key, $prev, $slicedKeys, intval($total / 2));
+        }
+
+        $slicedKeys = array_slice($keys, 1, $offset - 1, preserve_keys: true);
         if (array_key_last($slicedKeys) < $key) {
-            $slicedKeys = array_slice($keys, $total + 1, preserve_keys: true);
+            $slicedKeys = array_slice($keys, $offset - 1, preserve_keys: true);
         }
 
         return $this->searchKeyPrev($key, $prev, $slicedKeys, intval($total / 2));
@@ -376,23 +392,12 @@ final class Node implements NodeInterface
         }
     }
 
-    public function dropKey(string $key): void
-    {
-        if ($this->keys[$key] instanceof DataInterface) {
-            $this->keyTotal--;
-        } else {
-            $this->nodeTotal--;
-        }
-
-        unset($this->keys[$key]);
-    }
-
     public function replaceThreeWithOne(string $key, NodeInterface $node, array $keys, bool $next): void
     {
         if ($next) {
-            $this->keys = array_slice($this->keys, 0, $keys[$key] - 2, preserve_keys: true)
+            $this->keys = array_slice($this->keys, 0, $keys[$key], preserve_keys: true)
                 + [$key => $node]
-                + array_slice($this->keys, $keys[$key] + 1, preserve_keys: true);
+                + array_slice($this->keys, $keys[$key] + 3, preserve_keys: true);
         } else {
             $this->keys = array_slice($this->keys, 0, $keys[$key] - 2, preserve_keys: true)
                 + [$key => $node]
@@ -401,5 +406,42 @@ final class Node implements NodeInterface
 
         $this->nodeTotal--;
         $this->keyTotal--;
+    }
+
+    /**
+     * Replace a key between nodes
+     *
+     * @param string $key
+     *
+     * @return DataInterface
+     */
+    public function replaceKeyBetweenNodes(string $key): DataInterface
+    {
+        $keys = array_keys($this->keys);
+        $nextKeyIndex = array_flip($keys)[$key] + 1;
+
+        if (!empty($keys[$nextKeyIndex])) {
+            $item = $this->keys[$keys[$nextKeyIndex]];
+//            $this->getChildNodeKey($keys[$nextKeyIndex]);
+        }
+
+        $droppedKey = $this->dropKey($key);
+
+        return $droppedKey;
+    }
+
+    public function dropKey(string $key): DataInterface
+    {
+        if ($this->keys[$key] instanceof DataInterface) {
+            $this->keyTotal--;
+        } else {
+            $this->nodeTotal--;
+        }
+
+        $data = $this->keys[$key];
+
+        unset($this->keys[$key]);
+
+        return $data;
     }
 }
