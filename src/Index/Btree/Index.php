@@ -261,6 +261,14 @@ class Index implements IndexInterface
         return $deletedKey;
     }
 
+    /**
+     * Drop key between two nodes
+     *
+     * @param NodeInterface $node
+     * @param string $key
+     *
+     * @return DataInterface
+     */
     private function dropKeyFromNotLeaf(NodeInterface $node, string $key): DataInterface
     {
         $children = $node->getKeys();
@@ -290,6 +298,15 @@ class Index implements IndexInterface
         return $toRemove;
     }
 
+    /**
+     * Rebase a child of the node if the child has not enough keys
+     *
+     * @param NodeInterface $node
+     * @param NodeInterface $child
+     * @param string $position
+     *
+     * @return void
+     */
     private function rebaseChildren(NodeInterface $node, NodeInterface $child, string $position): void
     {
         $prevNode = $child->getPrevNode();
@@ -438,9 +455,5 @@ class Index implements IndexInterface
     public function between(string $form, string $to): array
     {
         return [];
-    }
-
-    private function mergeChildren()
-    {
     }
 }
