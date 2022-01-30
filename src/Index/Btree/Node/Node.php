@@ -268,14 +268,10 @@ final class Node implements NodeInterface
      *
      * @return array<string, DataInterface>
      */
-    private function searchKeyPrev(string $key, bool $prev, array $keys = null, int $total = null): array
+    public function searchKeyPrev(string $key, bool $prev, array $keys = null, int $total = null): array
     {
         if (is_null($keys)) {
             $keys = $this->keys;
-
-//            if (!$prev) {
-//                $keys = array_reverse($keys);
-//            }
         }
 
         if (is_null($total)) {
@@ -283,11 +279,12 @@ final class Node implements NodeInterface
         }
 
         if ($total === 1) {
-            if ($prev) {
-                return array_slice($keys, 1, 1, true);
+            $first = array_slice($keys, 0, 1, true);
+            if ($first[array_key_first($first)] instanceof DataInterface) {
+                return $first;
             }
 
-            return array_slice($keys, 0, 1, true);
+            return array_slice($keys, 1, 1, true);
         }
 
         $full = $total * 2 + 1;

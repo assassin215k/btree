@@ -17,7 +17,7 @@ interface IndexInterface
 
     public function insert(object $value): void;
 
-    public function delete(string | object | array $target): void;
+    public function delete(string | object | array $target): bool;
 
     public function search(string $key): array;
 

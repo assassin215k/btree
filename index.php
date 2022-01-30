@@ -30,19 +30,21 @@ $collection = new IndexedCollection($data);
 $collection->addIndex(['name', 'age']);
 echo "=====","\n";
 
-$collection->add(new Person('Sofia', 18));
-$collection->add(new Person('Sofia', 19));
-$collection->add(new Person('Sofia', 20));
-$collection->add(new Person('Sofia', 21));
-$collection->add(new Person('Sofia', 22));
-$collection->add(new Person('Sofia', 23));
+//$collection->add(new Person('Sofia', 18));
+//$collection->add(new Person('Sofia', 19));
+//$collection->add(new Person('Sofia', 20));
+//$collection->add(new Person('Sofia', 21));
+//$collection->add(new Person('Sofia', 22));
+//$collection->add(new Person('Sofia', 23));
 
 
 //$collection->delete(['name' => 'Alex', 'age' => 21]);
-$collection->delete(['name' => 'Owen', 'age' => 17]);
-
+//$collection->delete(['name' => 'Owen', 'age' => 17]);
+//$collection->printFirstIndex();
 $collection->delete(['name' => 'Olga', 'age' => 18]);
+//$collection->printFirstIndex();
 $collection->delete(['name' => 'Olga', 'age' => 28]);
+//$collection->printFirstIndex();
 $collection->delete(['name' => 'Olga', 'age' => 28]);
 $collection->delete(['name' => 'Lisa', 'age' => 34]);
 $collection->delete(['name' => 'Owen', 'age' => 27]);
@@ -50,6 +52,7 @@ $collection->delete(['name' => 'Peter', 'age' => 31]);
 $collection->delete(['name' => 'Roman', 'age' => 44]);
 $collection->delete(['name' => 'Ivan', 'age' => 17]);
 $collection->delete(['name' => 'Artur', 'age' => 28]);
-
 $collection->printFirstIndex();
+
+//$collection->printFirstIndex();
 echo "=====","\n";

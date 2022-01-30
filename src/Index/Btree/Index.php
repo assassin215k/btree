@@ -203,26 +203,25 @@ class Index implements IndexInterface
      *
      * @param string|object|array $target
      *
-     * @return void
+     * @return bool false if key is not found
      */
-    public function delete(string | object | array $target): void
+    public function delete(string | object | array $target): bool
     {
         $target = $this->getKey($target);
 
         $success = (bool)$this->deleteFromNode($this->root, $target);
 
-        $node = $this->root;
-        if ($node->isLeaf()) {
-            return;
+        if ($this->root->isLeaf()) {
+            return $success;
         }
 
-        if ($node->nodeTotal() === 1) {
-            $children = $node->getKeys();
+        if ($this->root->nodeTotal() === 1) {
+            $children = $this->root->getKeys();
 
             $this->root = array_pop($children);
-
-            return;
         }
+
+        return $success;
     }
 
     /**
@@ -244,31 +243,7 @@ class Index implements IndexInterface
         }
 
         if ($node->hasKey($key)) {
-            $children = $node->getKeys();
-            $keys = array_keys($children);
-            $keyIndexes = array_flip($keys);
-
-            $toRemove = $children[$key];
-
-            /** @var NodeInterface $child */
-            $child = $children[$keys[$keyIndexes[$key] + 1]];
-            $childChildren = $child->getKeys();
-            $keyLast = array_key_last($childChildren);
-
-            if ($childChildren[$keyLast] instanceof NodeInterface) {
-                $keyLast = array_slice(array_keys($childChildren), -2, 1)[0];
-            }
-
-            $value = [$keyLast => $this->deleteFromNode($child, $keyLast)];
-
-            $node->replaceKey($value, $key, keyOnly: true);
-
-            if ($child->count() < $this->degree) {
-                $position = array_key_first(array_slice($keyIndexes, $keyIndexes[$key] + 1, 1));
-                $this->rebaseChildren($node, $child, $position);
-            }
-
-            return $toRemove;
+            return $this->dropKeyFromNotLeaf($node, $key);
         }
 
         $position = $node->getChildNodeKey($key);
@@ -284,6 +259,35 @@ class Index implements IndexInterface
         }
 
         return $deletedKey;
+    }
+
+    private function dropKeyFromNotLeaf(NodeInterface $node, string $key): DataInterface
+    {
+        $children = $node->getKeys();
+        $keys = array_keys($children);
+        $keyIndexes = array_flip($keys);
+
+        $toRemove = $children[$key];
+
+        /** @var NodeInterface $child */
+        $child = $children[$keys[$keyIndexes[$key] + 1]];
+        $childChildren = $child->getKeys();
+        $firstKey = array_key_first($childChildren);
+
+        if ($childChildren[$firstKey] instanceof NodeInterface) {
+            $firstKey = array_slice(array_keys($childChildren), $keyIndexes[$key] - 1, 1)[0];
+        }
+
+        $value = [$firstKey => $this->deleteFromNode($child, $firstKey)];
+
+        $node->replaceKey($value, $key, keyOnly: true);
+
+        if ($child->count() < $this->degree) {
+            $position = array_key_first(array_slice($keyIndexes, $keyIndexes[$key] + 1, 1));
+            $this->rebaseChildren($node, $child, $position);
+        }
+
+        return $toRemove;
     }
 
     private function rebaseChildren(NodeInterface $node, NodeInterface $child, string $position): void
@@ -310,7 +314,7 @@ class Index implements IndexInterface
             $nodeTotal = $child->nodeTotal() + $nextNode->nodeTotal();
 
             $keys = $child->getKeys() + $prevK + $nextNode->getKeys();
-            $newNode = new Node(isLeaf: $node->isLeaf(), keys: $keys, keyTotal: $keyTotal, nodeTotal: $nodeTotal);
+            $newNode = new Node(isLeaf: $child->isLeaf(), keys: $keys, keyTotal: $keyTotal, nodeTotal: $nodeTotal);
             $newNode->setNextNode($nextNode->getNextNode());
             $nextNode->getNextNode()?->setPrevNode($newNode);
             $newNode->setPrevNode($child->getPrevNode());
@@ -328,7 +332,7 @@ class Index implements IndexInterface
         $nodeTotal = $child->nodeTotal() + $prevNode->nodeTotal();
 
         $keys = $prevNode->getKeys() + $nextK + $child->getKeys();
-        $newNode = new Node(isLeaf: $node->isLeaf(), keys: $keys, keyTotal: $keyTotal, nodeTotal: $nodeTotal);
+        $newNode = new Node(isLeaf: $child->isLeaf(), keys: $keys, keyTotal: $keyTotal, nodeTotal: $nodeTotal);
         $newNode->setPrevNode($prevNode->getPrevNode());
         $prevNode->getPrevNode()?->setNextNode($newNode);
 

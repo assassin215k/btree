@@ -1,13 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * Author: Ihor Fedan
- * Date: 25.01.22
- * Time: 11:14
- */
 
 namespace Btree\Test\Index\Btree\Node;
 
+use Btree\Index\Btree\Node\Data\Data;
 use Btree\Index\Btree\Node\Data\DataInterface;
 use Btree\Index\Btree\Node\Node;
 use Btree\Index\Btree\Node\NodeInterface;
@@ -217,5 +212,81 @@ class NodeTest extends TestCase
         $node->insertKey('K', $this->data);
         $keys = array_keys($node->getKeys());
         $this->assertSame(['K4', 'K31', 'K3', 'K20', 'K2', 'K10', 'K1', 'K0', 'K'], $keys);
+    }
+
+    public function testSearchKeyPrevTrue()
+    {
+        $keys = [
+            'N<Owen17' => new Node(
+                true,
+                [
+                    'K-Roman44' => new Data(new \DateTime()),
+                    'K-Peter31' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+            'K-Owen17' => new Data(new \DateTime()),
+            'N>Owen17' => new Node(
+                true,
+                [
+                    'K-Olga28' => new Data(new \DateTime()),
+                ],
+                1
+            ),
+            'K-Lisa44' => new Data(new \DateTime()),
+            'N<Artur28' => new Node(
+                true,
+                [
+                    'K-Lisa34' => new Data(new \DateTime()),
+                    'K-Ivan17' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+            'K-Artur28' => new Data(new \DateTime()),
+            'N>Artur28' => new Node(
+                true,
+                [
+                    'K-Alex31' => new Data(new \DateTime()),
+                    'K-Alex21' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+        ];
+        $node = new Node(isLeaf: false, keys: $keys, keyTotal: 3, nodeTotal: 4);
+        $result = $node->searchKeyPrev('K-Owen27', true);
+
+        $this->assertSame(1, count($result));
+        $this->assertSame('K-Owen17', array_key_first($result));
+        $this->assertInstanceOf(DataInterface::class, array_pop($result));
+    }
+
+    public function testSearchKeyPrevFalse()
+    {
+        $keys = [
+            'N<Owen17' => new Node(
+                true,
+                [
+                    'K-Roman44' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+            'K-Owen17' => new Data(new \DateTime()),
+            'N>Owen17' => new Node(
+                true,
+                [
+                    'K-Ivan17' => new Data(new \DateTime()),
+                    'K-Artur28' => new Data(new \DateTime()),
+                    'K-Alex31' => new Data(new \DateTime()),
+                    'K-Alex21' => new Data(new \DateTime()),
+                ],
+                4
+            ),
+        ];
+        $node = new Node(isLeaf: false, keys: $keys, keyTotal: 1, nodeTotal: 2);
+        $result = $node->searchKeyPrev('K-Owen27', false);
+
+        $this->assertSame(1, count($result));
+        $this->assertSame('K-Owen17', array_key_first($result));
+        $this->assertInstanceOf(DataInterface::class, array_pop($result));
     }
 }

@@ -214,6 +214,69 @@ _______________N>User108
 
         $this->assertSame($print, $index->printTree());
     }
+
+    public function deleteFromLeaf()
+    {
+        Index::$nodeSize = 3;
+        $index = new Index(['name', 'age']);
+        foreach ($this->data as $person) {
+            $index->insert($person);
+        }
+
+
+        $tree = "
+_____
+__________N<Owen17
+__________N>Owen17
+__________N<Artur28
+__________N>Artur28
+";
+        $this->assertSame($tree, $index->printTree());
+
+        $index->delete(['name' => 'Olga', 'age' => 18]);
+        $index->delete(['name' => 'Olga', 'age' => 28]);
+
+
+        $tree = "
+_____
+__________N<Owen17
+__________N>Owen17
+__________N>Artur28
+";
+        $this->assertSame($tree, $index->printTree());
+
+
+        $index->delete(['name' => 'Olga', 'age' => 28]);
+        $index->delete(['name' => 'Olga', 'age' => 28]);
+        $index->delete(['name' => 'Olga', 'age' => 28]);
+        $tree = "
+_____
+__________N<Owen17
+__________N>Owen17
+__________N>Artur28
+";
+        $this->assertSame($tree, $index->printTree());
+
+
+        $index->delete(['name' => 'Lisa', 'age' => 34]);
+        $index->delete(['name' => 'Owen', 'age' => 27]);
+        $index->delete(['name' => 'Peter', 'age' => 31]);
+        $tree = "
+_____
+__________N<Owen17
+__________N>Owen17
+";
+        $this->assertSame($tree, $index->printTree());
+
+
+        $index->delete(['name' => 'Roman', 'age' => 44]);
+        $index->delete(['name' => 'Ivan', 'age' => 17]);
+        $index->delete(['name' => 'Artur', 'age' => 28]);
+        $tree = "
+_____
+";
+        $this->assertSame($tree, $index->printTree());
+    }
 //
 //    public function testPrintTree()
 //    {
