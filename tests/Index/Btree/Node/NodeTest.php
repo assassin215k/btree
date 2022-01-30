@@ -19,12 +19,14 @@ class NodeTest extends TestCase
     protected NodeInterface $node;
     protected DataInterface $data;
 
+    private array $keys;
+
     public function setUp(): void
     {
         $this->data = Mockery::mock(DataInterface::class);
         $this->data->shouldReceive('add');
 
-        $keys = [
+        $this->keys = [
             'N3' => new Node(),
             'K2' => $this->data,
             'N2' => new Node(),
@@ -32,7 +34,7 @@ class NodeTest extends TestCase
             'N1' => new Node(),
         ];
 
-        $this->node = new Node(false, $keys, 2, 3);
+        $this->node = new Node(false, $this->keys, 2, 3);
     }
 
     public function testConstruct()
@@ -46,6 +48,33 @@ class NodeTest extends TestCase
         $this->assertFalse($node->isLeaf());
         $this->assertSame(3, $node->keyTotal);
         $this->assertSame(3, count($node->getKeys()));
+    }
+
+    public function testNeighbours()
+    {
+        $node = new Node();
+        $prev = new Node();
+        $next = new Node();
+
+        $node->setPrevNode($prev);
+        $node->setNextNode($next);
+
+        $this->assertSame($prev, $node->getPrevNode());
+        $this->assertSame($next, $node->getNextNode());
+    }
+
+    public function testId()
+    {
+        $node = new Node();
+
+        $this->assertIsInt($node->getId());
+    }
+
+    public function testNodeTotal()
+    {
+        $node = new Node(nodeTotal: 3);
+
+        $this->assertSame(3, $node->nodeTotal());
     }
 
     public function testGetNodeByKey()
@@ -288,5 +317,173 @@ class NodeTest extends TestCase
         $this->assertSame(1, count($result));
         $this->assertSame('K-Owen17', array_key_first($result));
         $this->assertInstanceOf(DataInterface::class, array_pop($result));
+    }
+
+    public function testExtractFirst()
+    {
+        $data = new Data(new \DateTime());
+        $keys = [
+            'K5' => $data,
+            'K4' => $this->data,
+            'K3' => $this->data,
+            'K2' => $this->data,
+            'K1' => $this->data,
+        ];
+
+        $node = new Node(keys: $keys, keyTotal: 5);
+        $first = $node->extractFirst();
+
+        $this->assertSame(array_slice($keys, 0, 1, true), $first);
+        $this->assertSame(4, $node->count());
+
+
+        $node = new Node();
+        $first = $node->extractFirst();
+        $this->assertSame([], $first);
+        $this->assertSame(0, $node->count());
+    }
+
+    public function testDropKeyNode()
+    {
+        $this->assertSame($this->keys['K1'], $this->node->dropKey('K1'));
+        $this->assertSame(3, $this->node->nodeTotal());
+        $this->assertSame(1, $this->node->count());
+
+        $this->expectError();
+        $this->node->dropKey('N1');
+    }
+
+    public function testReplaceThreeWithOne()
+    {
+        $keys = [
+            'N3' => new Node(
+                true,
+                [
+                    'K199' => $this->data,
+                    'K19' => $this->data
+                ],
+                2
+            ),
+            'K18' => $this->data,
+            'N2' => new Node(
+                true,
+                [
+                    'K17' => $this->data,
+                ],
+                2
+            ),
+            'K13' => $this->data,
+            'N1' => new Node(
+                true,
+                [
+                    'K12' => $this->data,
+                    'K11' => $this->data
+                ],
+                2
+            ),
+        ];
+
+        $node = new Node(false, $keys, 2, 3);
+        $newNode = new Node(
+            keys: [
+                'K17' => $this->data,
+                'K16' => $this->data,
+                'K15' => $this->data,
+                'K14' => $this->data,
+            ],
+            keyTotal: 4
+        );
+
+        $node->replaceThreeWithOne('N2', $newNode, array_flip(array_keys($keys)), true);
+        $this->assertSame(1, $node->count());
+        $this->assertSame(2, $node->nodeTotal());
+
+        $keys = array_keys($node->getKeys());
+
+        $this->assertSame('N3', $keys[0]);
+        $this->assertSame('K18', $keys[1]);
+        $this->assertSame('N2', $keys[2]);
+
+        $node = $node->getKeys()[$keys[2]];
+
+        $this->assertSame(['K17', 'K16', 'K15', 'K14'], array_keys($node->getKeys()));
+
+
+
+        $keys = [
+            'N3' => new Node(
+                true,
+                [
+                    'K199' => $this->data,
+                    'K19' => $this->data
+                ],
+                2
+            ),
+            'K18' => $this->data,
+            'N2' => new Node(
+                true,
+                [
+                    'K17' => $this->data,
+                ],
+                2
+            ),
+            'K13' => $this->data,
+            'N1' => new Node(
+                true,
+                [
+                    'K12' => $this->data,
+                    'K11' => $this->data
+                ],
+                2
+            ),
+        ];
+
+        $node = new Node(false, $keys, 2, 3);
+        $newNode = new Node(
+            keys: [
+                'K17' => $this->data,
+                'K16' => $this->data,
+                'K15' => $this->data,
+                'K14' => $this->data,
+            ],
+            keyTotal: 4
+        );
+
+        $node->replaceThreeWithOne('N2', $newNode, array_flip(array_keys($keys)), false);
+        $this->assertSame(1, $node->count());
+        $this->assertSame(2, $node->nodeTotal());
+
+        $keys = array_keys($node->getKeys());
+
+        $this->assertSame('N2', $keys[0]);
+        $this->assertSame('K13', $keys[1]);
+        $this->assertSame('N1', $keys[2]);
+
+        $node = $node->getKeys()[$keys[0]];
+
+        $this->assertSame(['K17', 'K16', 'K15', 'K14'], array_keys($node->getKeys()));
+    }
+
+    public function testSearchKeyPrev()
+    {
+        $keys = [
+            'N3' => new Node(),
+            'K18' => $this->data,
+        ];
+
+        $node = new Node(false, $keys, 1, 1);
+        $result = $node->searchKeyPrev('K185', true);
+
+        $this->assertArrayHasKey('K18', $result);
+
+        $keys = [
+            'K18' => $this->data,
+            'N3' => new Node(),
+        ];
+
+        $node = new Node(false, $keys, 1, 1);
+        $result = $node->searchKeyPrev('K185', true);
+
+        $this->assertArrayHasKey('K18', $result);
     }
 }
