@@ -142,6 +142,16 @@ final class Node implements NodeInterface
     }
 
     /**
+     * Return node key count
+     *
+     * @return int
+     */
+    public function nodeTotal(): int
+    {
+        return $this->nodeTotal;
+    }
+
+    /**
      * @param string $key
      * @param int|null $nodeTotal
      * @param array|null $keys
@@ -213,7 +223,7 @@ final class Node implements NodeInterface
         $target = $this->searchKeyPrev($lastKey, $replacePrev);
         $key = array_key_first($target);
         $child->insertKey($key, $target[$key], 0);
-        $this->replaceKey($lastItem, $key, sameK: true);
+        $this->replaceKey($lastItem, $key, keyOnly: true);
     }
 
     /**
@@ -364,10 +374,12 @@ final class Node implements NodeInterface
      * @param array $array
      * @param string|null $key
      * @param bool $fullReplace
+     * @param bool $keyOnly Set true if replace one Data and one Node, sat false if only Data.
+     *                      Ignored if $fullReplace is false
      *
      * @return void
      */
-    public function replaceKey(array $array, string $key = null, bool $fullReplace = false, bool $sameK = false): void
+    public function replaceKey(array $array, string $key = null, bool $fullReplace = false, bool $keyOnly = false): void
     {
         if ($fullReplace) {
             $this->keys = $array;
@@ -386,7 +398,7 @@ final class Node implements NodeInterface
             + $array
             + $after;
 
-        if (!$sameK) {
+        if (!$keyOnly) {
             $this->keyTotal++;
             $this->nodeTotal++;
         }
@@ -406,28 +418,6 @@ final class Node implements NodeInterface
 
         $this->nodeTotal--;
         $this->keyTotal--;
-    }
-
-    /**
-     * Replace a key between nodes
-     *
-     * @param string $key
-     *
-     * @return DataInterface
-     */
-    public function replaceKeyBetweenNodes(string $key): DataInterface
-    {
-        $keys = array_keys($this->keys);
-        $nextKeyIndex = array_flip($keys)[$key] + 1;
-
-        if (!empty($keys[$nextKeyIndex])) {
-            $item = $this->keys[$keys[$nextKeyIndex]];
-//            $this->getChildNodeKey($keys[$nextKeyIndex]);
-        }
-
-        $droppedKey = $this->dropKey($key);
-
-        return $droppedKey;
     }
 
     public function dropKey(string $key): DataInterface

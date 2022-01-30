@@ -21,11 +21,18 @@ interface NodeInterface
 
     public function getNodeByKey(string $index): NodeInterface;
 
-    public function replaceKey(array $array, string $key = null, bool $fullReplace = false): void;
+    public function replaceKey(
+        array $array,
+        string $key = null,
+        bool $fullReplace = false,
+        bool $keyOnly = false
+    ): void;
 
     public function hasKey(string $key): bool;
 
     public function count(): int;
+
+    public function nodeTotal(): int;
 
     public function extractLast(): array;
 
@@ -48,6 +55,4 @@ interface NodeInterface
     public function getNextNode(): ?NodeInterface;
 
     public function setNextNode(?NodeInterface $node): void;
-
-    public function replaceKeyBetweenNodes(string $key): DataInterface;
 }
