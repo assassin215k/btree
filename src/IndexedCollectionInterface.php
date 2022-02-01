@@ -2,7 +2,6 @@
 
 namespace Btree;
 
-use Btree\Enum\IndexEnum;
 use Btree\Builder\BuilderInterface;
 use Btree\Index\Btree\IndexInterface;
 

@@ -32,8 +32,15 @@ class IndexedCollection implements IndexedCollectionInterface
      *
      * @param array $data to store original data
      */
-    public function __construct(private array $data)
+    public function __construct(private array $data, private readonly array $options = [])
     {
+        if (key_exists('builderClass', $this->options)) {
+            self::$defaultBuilderClass = $this->options['builderClass'];
+        }
+
+        if (key_exists('indexClass', $this->options)) {
+            self::$defaultIndexClass = $this->options['indexClass'];
+        }
     }
 
     /**
@@ -106,13 +113,13 @@ class IndexedCollection implements IndexedCollectionInterface
      */
     public function createBuilder(): BuilderInterface
     {
-        return new self::$defaultBuilderClass();
+        return new self::$defaultBuilderClass($this->indexes, $this->data);
     }
 
-    public function search(string $key): array
+    public function searchFirstIndex(string $key): array
     {
         if (array_key_first($this->indexes)) {
-            $this->indexes[array_key_first($this->indexes)]->search($key);
+            return $this->indexes[array_key_first($this->indexes)]->search($key);
         }
 
         return [];

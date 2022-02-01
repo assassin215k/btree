@@ -2,6 +2,7 @@
 
 namespace Btree\Index\Btree;
 
+use Btree\Index\Btree\Node\Data\DataInterface;
 use Btree\Index\Btree\Node\NodeInterface;
 
 /**
@@ -19,7 +20,7 @@ interface IndexInterface
 
     public function delete(string | object | array $target): bool;
 
-    public function search(string $key): array;
+    public function search(string $key, NodeInterface $node = null): array;
 
     public function lessThan(string $key): array;
 

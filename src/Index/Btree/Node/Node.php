@@ -114,6 +114,18 @@ final class Node implements NodeInterface
     }
 
     /**
+     * Get all Node and Data key array
+     *
+     * @param string $key
+     *
+     * @return DataInterface | NodeInterface | null
+     */
+    public function getKey(string $key): DataInterface | NodeInterface | null
+    {
+        return $this->hasKey($key) ? $this->keys[$key] : null;
+    }
+
+    /**
      * @return bool
      */
     public function isLeaf(): bool

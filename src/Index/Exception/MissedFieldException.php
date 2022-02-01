@@ -1,6 +1,6 @@
 <?php
 
-namespace Btree\Exception;
+namespace Btree\Index\Exception;
 
 use Exception;
 

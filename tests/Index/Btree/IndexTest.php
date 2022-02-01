@@ -2,9 +2,9 @@
 
 namespace Btree\Test\Index\Btree;
 
-use Btree\Exception\MissedFieldException;
-use Btree\Exception\MissedPropertyException;
 use Btree\Index\Btree\Index;
+use Btree\Index\Exception\MissedFieldException;
+use Btree\Index\Exception\MissedPropertyException;
 use PHPUnit\Framework\TestCase;
 
 /**

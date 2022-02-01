@@ -30,6 +30,8 @@ interface NodeInterface
 
     public function hasKey(string $key): bool;
 
+    public function getKey(string $key): DataInterface | NodeInterface | null;
+
     public function count(): int;
 
     public function nodeTotal(): int;
@@ -39,8 +41,6 @@ interface NodeInterface
     public function extractFirst(): array;
 
     public function insertKey(string $key, object $value, int $position = null): void;
-
-    public function getChildNodeKey(string $key): string;
 
     public function dropKey(string $key): DataInterface;
 

@@ -3,7 +3,7 @@
 namespace Btree\Builder\Enum;
 
 /**
- * Enum IndexSortOrder
+ * Enum EnumSort
  *
  * Sort direction variants
  *

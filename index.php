@@ -2,6 +2,8 @@
 
 require_once 'vendor/autoload.php';
 
+use Btree\Builder\Enum\EnumOperator;
+use Btree\Builder\Enum\EnumSort;
 use Btree\Index\Btree\Index;
 use Btree\IndexedCollection;
 use Btree\Test\Index\Btree\Person;
@@ -20,6 +22,7 @@ $data = [
     new Person('Lisa', 34),
     new Person('Alex', 21),
 ];
+
 //$data = [];
 for ($i = 5;$i < 1000;$i++) {
     $data[] = new Person('User', $i);
@@ -37,7 +40,16 @@ $collection->add(new Person('Sofia', 21));
 $collection->add(new Person('Sofia', 22));
 $collection->add(new Person('Sofia', 23));
 
+$result = $collection
+    ->createBuilder()
+    ->where('age', EnumOperator::LessThen, 20)
+    ->addOrder('name', EnumSort::ASC)
+    ->addOrder('age', EnumSort::ASC)
+    ->run();
+die;
 
+
+$item = $collection->searchFirstIndex('K-Olga18');
 $collection->delete(['name' => 'Alex', 'age' => 21]);
 $collection->delete(['name' => 'Owen', 'age' => 17]);
 //$collection->printFirstIndex();

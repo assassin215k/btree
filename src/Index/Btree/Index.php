@@ -2,11 +2,11 @@
 
 namespace Btree\Index\Btree;
 
-use Btree\Exception\MissedFieldException;
-use Btree\Exception\MissedPropertyException;
 use Btree\Index\Btree\Node\Data\DataInterface;
 use Btree\Index\Btree\Node\Node;
 use Btree\Index\Btree\Node\NodeInterface;
+use Btree\Index\Exception\MissedFieldException;
+use Btree\Index\Exception\MissedPropertyException;
 
 /**
  * Class Index
@@ -360,12 +360,31 @@ class Index implements IndexInterface
      * todo unrealized method
      *
      * @param string $key
+     * @param NodeInterface|null $node
      *
      * @return array
      */
-    public function search(string $key): array
+    public function search(string $key, NodeInterface $node = null): array
     {
-        return [];
+        if (!$node) {
+            $node = $this->root;
+        }
+
+        if ($node->hasKey($key) || $node->isLeaf()) {
+            /** @var DataInterface|null $data */
+            $data = $node->getKey($key);
+
+            return $data?->get();
+        }
+
+        $childKey = $node->getChildNodeKey($key);
+        $child = $node->getKey($childKey);
+
+        if (is_null($child)) {
+            $child = array_slice($node->getKeys(), -1, 1);
+        }
+
+        return $this->search($key, $child);
     }
 
     /**
