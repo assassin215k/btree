@@ -27,7 +27,7 @@ interface BuilderInterface
      *
      * @return $this
      */
-    public function where(string $field, EnumOperator $operator, mixed $value): self;
+    public function where(string $field, EnumOperator $operator, mixed $value = null): self;
 
     /**
      * @throws EmptyFieldException
@@ -40,7 +40,7 @@ interface BuilderInterface
      *
      * @return $this
      */
-    public function andWhere(string $field, EnumOperator $operator, mixed $value): self;
+    public function andWhere(string $field, EnumOperator $operator, mixed $value = null): self;
 
     /**
      * @throws EmptyFieldException

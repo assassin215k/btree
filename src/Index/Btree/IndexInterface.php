@@ -16,6 +16,8 @@ interface IndexInterface
 {
     public function __construct(array | string $fields);
 
+    public function getFields(): array;
+
     public function insert(object $value): void;
 
     public function delete(string | object | array $target): bool;
@@ -26,9 +28,9 @@ interface IndexInterface
 
     public function lessThanOrEqual(string $key): array;
 
-    public function graterThan(string $key): array;
+    public function greaterThan(string $key): array;
 
-    public function graterThanOrEqual(string $key): array;
+    public function greaterThanOrEqual(string $key): array;
 
     public function between(string $form, string $to): array;
 

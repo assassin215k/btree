@@ -6,6 +6,7 @@ use Btree\Builder\Enum\EnumOperator;
 use Btree\Builder\Enum\EnumSort;
 use Btree\Builder\Exception\EmptyFieldException;
 use Btree\Builder\Exception\InvalidConditionValueException;
+use Btree\Builder\Exception\MissedFieldValueException;
 use Btree\Helper\IndexHelper;
 use Btree\Index\Btree\IndexInterface;
 use Btree\Index\Exception\MissedPropertyException;
@@ -22,6 +23,10 @@ class Builder implements BuilderInterface
     private array $where = [];
     private array $order = [];
 
+    /**
+     * @param IndexInterface[] $indexes
+     * @param object[] $data
+     */
     public function __construct(private readonly array &$indexes, private readonly array &$data)
     {
     }
@@ -37,7 +42,7 @@ class Builder implements BuilderInterface
      *
      * @return $this
      */
-    public function where(string $field, EnumOperator $operator, mixed $value): self
+    public function where(string $field, EnumOperator $operator, mixed $value = null): self
     {
         $this->where = [];
 
@@ -47,18 +52,22 @@ class Builder implements BuilderInterface
     /**
      * @throws EmptyFieldException
      * @throws InvalidConditionValueException
-     *
-     * @param mixed $value
+     * @throws MissedFieldValueException
      *
      * @param string $field
      * @param EnumOperator $operator
      *
+     * @param mixed $value
+     *
      * @return $this
      */
-    public function andWhere(string $field, EnumOperator $operator, mixed $value): self
+    public function andWhere(string $field, EnumOperator $operator, mixed $value = null): self
     {
         if (empty($field)) {
             throw new EmptyFieldException();
+        }
+        if ($operator !== EnumOperator::IsNull && is_null($value)) {
+            throw new MissedFieldValueException();
         }
 
         /** @var string $operator */
@@ -79,7 +88,13 @@ class Builder implements BuilderInterface
                 $value1 = is_int($value[0]) || is_string($value[0]) || is_float($value[0]);
                 $value2 = is_int($value[1]) || is_string($value[1]) || is_float($value[1]);
                 if ($value1 && $value2) {
-                    break;
+                    $this->where[$field] = [
+                        'op' => $operator,
+                        'val' => min($value1, $value2),
+                        'val2' => max($value1, $value2)
+                    ];
+
+                    return $this;
                 }
                 throw new InvalidConditionValueException();
             case EnumOperator::Equal:
@@ -149,8 +164,8 @@ class Builder implements BuilderInterface
             return $this->data;
         }
 
-        $fields = array_keys($this->where);
-        $index = $this->selectIndex($fields);
+        /** @var IndexInterface $index */
+        list($index, $fields) = $this->selectIndex();
 
         if (is_null($index)) {
             $data = $this->filter($this->data, $this->where);
@@ -159,9 +174,113 @@ class Builder implements BuilderInterface
             return $data;
         }
 
-        // work with index here
+        $lastOperator = null;
+        $key = IndexHelper::DATA_PREFIX;
+        $key2 = null;
+        foreach ($fields as $field) {
+            $operator = $this->where[$field]['op'];
+
+            if ($operator !== EnumOperator::IsNull && $operator !== EnumOperator::Equal) {
+                $lastOperator = $operator;
+            }
+
+            if ($operator === EnumOperator::Beetwen) {
+                $key2 = $key . $this->where[$field]['val2'];
+            }
+            $key .= $operator === EnumOperator::IsNull ? IndexHelper::NULL : $this->where[$field]['val'];
+
+            unset($this->where[$field]);
+        }
+
+        if (!$lastOperator) {
+            $data = $this->filter($index->search($key), $this->where);
+            $this->sortData($data);
+
+            return $data;
+        }
+
+        switch ($lastOperator) {
+            case EnumOperator::LessThen:
+                $data = $index->lessThan($key);
+                break;
+            case EnumOperator::LessThenOrEqual:
+                $data = $index->lessThanOrEqual($key);
+                break;
+            case EnumOperator::GreateThen:
+                $data = $index->greaterThan($key);
+                break;
+            case EnumOperator::GreateThenOrEqual:
+                $data = $index->greaterThanOrEqual($key);
+                break;
+            case EnumOperator::Beetwen:
+                $data = $index->between($key, $key2);
+                break;
+        }
+
+        foreach ($this->where as $field) {
+            var_dump($data);
+            var_dump($field);
+        }
 
         return [];
+    }
+
+    private function sortData(array &$data): void
+    {
+        usort($data, function (object $a, object $b) {
+            foreach ($this->order as $field => $order) {
+                if ($a->$field === $b->$field) {
+                    continue;
+                }
+
+                if ($order === EnumSort::ASC) {
+                    return ($a->$field < $b->$field) ? -1 : 1;
+                }
+
+                return ($a->$field > $b->$field) ? -1 : 1;
+            }
+
+            return 0;
+        });
+    }
+
+    private function selectIndex(): array
+    {
+        $indexMaxLength = 0;
+        $indexKey = null;
+        $selectedFields = [];
+
+        foreach ($this->indexes as $key => $index) {
+            $indexLength = 0;
+            $fields = [];
+            foreach ($index->getFields() as $field) {
+                if (!array_key_exists($field, $this->where)) {
+                    break;
+                }
+
+                $indexLength++;
+
+                $fields[] = $field;
+
+                $operator = $this->where[$field]['op'];
+                if ($operator === EnumOperator::Equal || $operator === EnumOperator::IsNull) {
+                    continue;
+                }
+
+                break;
+            }
+
+            if ($indexLength > $indexMaxLength) {
+                $indexMaxLength = $indexLength;
+                $indexKey = $key;
+                $selectedFields = $fields;
+            }
+        }
+
+        return [
+            $indexMaxLength ? $this->indexes[$indexKey] : null,
+            $selectedFields
+        ];
     }
 
     private function filter(array $data, array $whereArray): array
@@ -229,40 +348,5 @@ class Builder implements BuilderInterface
         if (empty($item->$field)) {
             throw new MissedPropertyException($field, $item);
         }
-    }
-
-    private function sortData(array &$data): void
-    {
-        usort($data, function (object $a, object $b) {
-            foreach ($this->order as $field => $order) {
-                if ($a->$field === $b->$field) {
-                    continue;
-                }
-
-                if ($order === EnumSort::ASC) {
-                    return ($a->$field < $b->$field) ? -1 : 1;
-                }
-
-                return ($a->$field > $b->$field) ? -1 : 1;
-            }
-
-            return 0;
-        });
-    }
-
-    private function selectIndex(array &$fields): ?IndexInterface
-    {
-        if (!count($fields)) {
-            return null;
-        }
-
-        $indexKey = IndexHelper::getIndexName($fields);
-        if (array_key_exists($indexKey, $this->indexes)) {
-            return $this->indexes[$indexKey];
-        }
-
-        array_pop($fields);
-
-        return $this->selectIndex($fields);
     }
 }

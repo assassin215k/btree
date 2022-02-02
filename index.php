@@ -24,14 +24,18 @@ $data = [
 ];
 
 //$data = [];
-for ($i = 5;$i < 1000;$i++) {
-    $data[] = new Person('User', $i);
+$gender = [null, 0, 1];
+$countries = ["UA", "RU", "PL", "GB", "USA", null];
+for ($i = 5; $i < 1000; $i++) {
+    $data[] = new Person('User', $i, $gender[array_rand($gender, 1)], $countries[array_rand($countries, 1)]);
 }
 
 Index::$nodeSize = 3;
 $collection = new IndexedCollection($data);
 $collection->addIndex(['name', 'age']);
-echo "=====","\n";
+$collection->addIndex('age');
+$collection->addIndex('country');
+echo "=====", "\n";
 
 $collection->add(new Person('Sofia', 18));
 $collection->add(new Person('Sofia', 19));
@@ -67,4 +71,4 @@ $collection->delete(['name' => 'Artur', 'age' => 28]);
 $collection->printFirstIndex();
 
 //$collection->printFirstIndex();
-echo "=====","\n";
+echo "=====", "\n";

@@ -2,6 +2,7 @@
 
 namespace Btree\Index\Btree;
 
+use Btree\Helper\IndexHelper;
 use Btree\Index\Btree\Node\Data\DataInterface;
 use Btree\Index\Btree\Node\Node;
 use Btree\Index\Btree\Node\NodeInterface;
@@ -55,6 +56,14 @@ class Index implements IndexInterface
     }
 
     /**
+     * @return array
+     */
+    public function getFields(): array
+    {
+        return $this->fields;
+    }
+
+    /**
      * @throws MissedPropertyException
      *
      * @param object $value
@@ -83,7 +92,7 @@ class Index implements IndexInterface
      */
     private function getKey(string | object | array $value): string
     {
-        $key = 'K-';
+        $key = IndexHelper::DATA_PREFIX;
 
         if (is_string($value)) {
             return $key . $value;
@@ -95,18 +104,18 @@ class Index implements IndexInterface
                     throw new MissedPropertyException($field, $value);
                 }
 
-                $key .= is_null($value[$field]) ? '_' : $value[$field];
+                $key .= is_null($value[$field]) ? IndexHelper::NULL : $value[$field];
             }
 
             return $key;
         }
 
         foreach ($this->fields as $field) {
-            if (empty($value->$field)) {
+            if (!is_null($value->$field) && !isset($value->$field)) {
                 throw new MissedPropertyException($field, $value);
             }
 
-            $key .= is_null($value->$field) ? '_' : $value->$field;
+            $key .= is_null($value->$field) ? IndexHelper::NULL : $value->$field;
         }
 
         return $key;
@@ -374,7 +383,7 @@ class Index implements IndexInterface
             /** @var DataInterface|null $data */
             $data = $node->getKey($key);
 
-            return $data?->get();
+            return $data?->get() ?? [];
         }
 
         $childKey = $node->getChildNodeKey($key);
@@ -446,7 +455,7 @@ class Index implements IndexInterface
      *
      * @return array
      */
-    public function graterThan(string $key): array
+    public function greaterThan(string $key): array
     {
         return [];
     }
@@ -458,7 +467,7 @@ class Index implements IndexInterface
      *
      * @return array
      */
-    public function graterThanOrEqual(string $key): array
+    public function greaterThanOrEqual(string $key): array
     {
         return [];
     }

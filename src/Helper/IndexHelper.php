@@ -11,6 +11,9 @@ namespace Btree\Helper;
  */
 class IndexHelper
 {
+    public const DATA_PREFIX = 'K-';
+    public const NULL = '_';
+
     public static function getIndexName(string|array $fieldName): string
     {
         return is_array($fieldName) ? join('-', $fieldName) : $fieldName;
