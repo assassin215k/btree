@@ -366,8 +366,6 @@ class Index implements IndexInterface
     }
 
     /**
-     * todo unrealized method
-     *
      * @param string $key
      * @param NodeInterface|null $node
      *
@@ -425,63 +423,205 @@ class Index implements IndexInterface
     }
 
     /**
-     * todo unrealized method
-     *
      * @param string $key
      *
      * @return array
      */
     public function lessThan(string $key): array
     {
-        return [];
+        return $this->extract($this->searchRange(from: $key));
     }
 
     /**
-     * todo unrealized method
+     * @param array $dataArray
      *
+     * @return array
+     */
+    private function extract(array $dataArray): array
+    {
+        /** @var DataInterface $data */
+        return array_reduce($dataArray, function (?array $carry, $data) {
+            if (is_null($carry)) {
+                $carry = [];
+            }
+
+            foreach ($data->get() as $item) {
+                $carry[] = $item;
+            }
+
+            return $carry;
+        });
+    }
+
+    /**
+     * @param string|null $from
+     * @param bool $fromInclude
+     * @param string|null $to
+     * @param bool $toInclude
+     * @param NodeInterface|null $node
+     *
+     * @return object[]
+     */
+    private function searchRange(
+        string $from = null,
+        bool $fromInclude = false,
+        string $to = null,
+        bool $toInclude = false,
+        NodeInterface $node = null
+    ): array {
+        if (is_null($node)) {
+            $node = $this->root;
+        }
+
+        $keys = $node->getKeys();
+        $keyList = array_keys($keys);
+
+        $firstKey = self::getFirstKey($keyList, $from, $fromInclude);
+        $lastKey = self::getFirstKey($keyList, $to, $fromInclude);
+
+        $flippedKeys = array_flip($keyList);
+        $keys = array_slice($keys, !is_null($firstKey) ? $flippedKeys[$firstKey] : array_key_last($keyList));
+        if (!is_null($firstKey)) {
+            $keyList = array_keys($keys);
+            $flippedKeys = array_flip($keyList);
+            $keys = array_slice($keys, 0, $flippedKeys[$lastKey] + 1);
+        }
+
+        if ($node->isLeaf()) {
+            return $keys;
+        }
+
+        $result = [];
+        foreach ($keys as $key => $child) {
+            if ($child instanceof DataInterface) {
+                if ($fromInclude && $key > $from || !$fromInclude && $key >= $from) {
+                    continue;
+                }
+                if ($fromInclude && $key > $from || !$fromInclude && $key >= $from) {
+                    continue;
+                }
+                if ($toInclude && $key < $to || !$toInclude && $key <= $to) {
+                    continue;
+                }
+                if ($toInclude && $key < $to || !$toInclude && $key <= $to) {
+                    continue;
+                }
+
+                $result[$key] = $child;
+                continue;
+            }
+
+            $result = array_merge($result, $this->searchRange($from, $fromInclude, $to, $toInclude, $child));
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $keys
+     * @param string|null $key
+     * @param bool $include
+     *
+     * @return string|null
+     */
+    public static function getFirstKey(array $keys, string $key = null, bool $include = false): ?string
+    {
+        if (is_null($key)) {
+            return array_key_first($keys);
+        }
+
+        $filtered = array_filter($keys, function ($k) use ($key, $include) {
+            if (!str_starts_with($k, IndexHelper::DATA_PREFIX)) {
+                return false;
+            }
+
+            return $include ? $k <= $key : $k < $key;
+        });
+
+        if (!count($filtered)) {
+            return null;
+        }
+
+        $firstKey = $filtered[array_key_first($filtered)];
+        if ($firstKey < $key) {
+            $firstKey = $keys[array_flip($keys)[$firstKey] - 1];
+        }
+
+        return $firstKey;
+    }
+
+    /**
+     * @param array $keys
+     * @param string|null $key
+     * @param bool $include
+     *
+     * @return string|null
+     */
+    public static function getLastKey(array $keys, string $key = null, bool $include = false): ?string
+    {
+        if (is_null($key)) {
+            return array_key_last($keys);
+        }
+
+        $filtered = array_filter($keys, function ($k) use ($key, $include) {
+            if (!str_starts_with($k, IndexHelper::DATA_PREFIX)) {
+                return false;
+            }
+
+            return $include ? $k >= $key : $k > $key;
+        });
+
+        if (!count($filtered)) {
+            return null;
+        }
+
+        $lastKey = $filtered[array_key_last($filtered)];
+
+        if ($lastKey > $key) {
+            $lastKey = $keys[array_flip($keys)[$lastKey] + 1];
+        }
+
+        return $lastKey;
+    }
+
+    /**
      * @param string $key
      *
      * @return array
      */
     public function lessThanOrEqual(string $key): array
     {
-        return [];
+        return $this->extract($this->searchRange(from: $key, fromInclude: true));
     }
 
     /**
-     * todo unrealized method
-     *
      * @param string $key
      *
      * @return array
      */
     public function greaterThan(string $key): array
     {
-        return [];
+        return $this->extract($this->searchRange(to: $key));
     }
 
     /**
-     * todo unrealized method
-     *
      * @param string $key
      *
      * @return array
      */
     public function greaterThanOrEqual(string $key): array
     {
-        return [];
+        return $this->extract($this->searchRange(to: $key, toInclude: true));
     }
 
     /**
-     * todo unrealized method
-     *
-     * @param string $form
+     * @param string $from
      * @param string $to
      *
      * @return array
      */
-    public function between(string $form, string $to): array
+    public function between(string $from, string $to): array
     {
-        return [];
+        return $this->extract($this->searchRange(from: $from, fromInclude: true, to: $to, toInclude: true));
     }
 }

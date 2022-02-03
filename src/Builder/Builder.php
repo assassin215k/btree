@@ -9,6 +9,7 @@ use Btree\Builder\Exception\InvalidConditionValueException;
 use Btree\Builder\Exception\MissedFieldValueException;
 use Btree\Helper\IndexHelper;
 use Btree\Index\Btree\IndexInterface;
+use Btree\Index\Btree\Node\Data\DataInterface;
 use Btree\Index\Exception\MissedPropertyException;
 
 /**
@@ -34,11 +35,12 @@ class Builder implements BuilderInterface
     /**
      * @throws EmptyFieldException
      * @throws InvalidConditionValueException
-     *
-     * @param mixed $value
+     * @throws MissedFieldValueException
      *
      * @param string $field
      * @param EnumOperator $operator
+     *
+     * @param mixed $value
      *
      * @return $this
      */
@@ -90,8 +92,8 @@ class Builder implements BuilderInterface
                 if ($value1 && $value2) {
                     $this->where[$field] = [
                         'op' => $operator,
-                        'val' => min($value1, $value2),
-                        'val2' => max($value1, $value2)
+                        'val' => max($value[0], $value[1]),
+                        'val2' => min($value[0], $value[1])
                     ];
 
                     return $this;
@@ -152,6 +154,8 @@ class Builder implements BuilderInterface
     }
 
     /**
+     * @throws MissedPropertyException
+     *
      * @return array
      */
     public function run(): array
@@ -217,14 +221,17 @@ class Builder implements BuilderInterface
                 break;
         }
 
-        foreach ($this->where as $field) {
-            var_dump($data);
-            var_dump($field);
-        }
+        $data = $this->filter($data, $this->where);
+        $this->sortData($data);
 
-        return [];
+        return $data;
     }
 
+    /**
+     * @param array $data
+     *
+     * @return void
+     */
     private function sortData(array &$data): void
     {
         usort($data, function (object $a, object $b) {
@@ -244,6 +251,9 @@ class Builder implements BuilderInterface
         });
     }
 
+    /**
+     * @return array
+     */
     private function selectIndex(): array
     {
         $indexMaxLength = 0;
@@ -283,6 +293,14 @@ class Builder implements BuilderInterface
         ];
     }
 
+    /**
+     * @throws MissedPropertyException
+     *
+     * @param array $whereArray
+     * @param array $data
+     *
+     * @return array
+     */
     private function filter(array $data, array $whereArray): array
     {
         return array_filter($data, function (object $item) use ($whereArray): bool {
@@ -329,13 +347,14 @@ class Builder implements BuilderInterface
                         break;
 
                     case EnumOperator::Beetwen:
-                        if ($item->$field > $where['val'][0] && $item->$field > $where['val'][1]) {
+                        if ($item->$field > $where['val1'] && $item->$field > $where['val2']) {
                             return false;
                         }
 
-                        if ($item->$field < $where['val'][0] && $item->$field < $where['val'][1]) {
+                        if ($item->$field < $where['val1'] && $item->$field < $where['val2']) {
                             return false;
                         }
+                        break;
                 }
             }
 
@@ -343,6 +362,14 @@ class Builder implements BuilderInterface
         });
     }
 
+    /**
+     * @throws MissedPropertyException
+     *
+     * @param string $field
+     * @param object $item
+     *
+     * @return void
+     */
     private function checkField(object $item, string $field): void
     {
         if (empty($item->$field)) {

@@ -27,7 +27,13 @@ $data = [
 $gender = [null, 0, 1];
 $countries = ["UA", "RU", "PL", "GB", "USA", null];
 for ($i = 5; $i < 1000; $i++) {
-    $data[] = new Person('User', $i, $gender[array_rand($gender, 1)], $countries[array_rand($countries, 1)]);
+    $data[] = new Person(
+        'User',
+$i % 60,
+//        rand(15, 50),
+        $gender[array_rand($gender, 1)],
+        $countries[array_rand($countries, 1)]
+    );
 }
 
 Index::$nodeSize = 3;
@@ -44,11 +50,37 @@ $collection->add(new Person('Sofia', 21));
 $collection->add(new Person('Sofia', 22));
 $collection->add(new Person('Sofia', 23));
 
+//$keys = array (
+//    0 => 'N>37',
+//    1 => 'K-28',
+//    2 => 'N<18',
+//    3 => 'K-18',
+//    4 => 'N>18',
+//);
+//
+////$keys = array (
+////  0 => 'N<37',
+////  1 => 'K-37',
+////  2 => 'N>37',
+////);
+//
+//$first = Index::getFirstKey($keys, 'K-30', true);
+//$last = Index::getLastKey($keys, 'K-20', true);
+//
+//$flippedKeys = array_flip($keys);
+//$keys = array_slice($keys, !is_null($first) ? $flippedKeys[$first] : array_key_last($keys));
+//if (!is_null($first)) {
+//    $flippedKeys = array_flip($keys);
+//    $keys = array_slice($keys, 0, $flippedKeys[$last] + 1);
+//}
+//
+//die;
+
 $result = $collection
     ->createBuilder()
-    ->where('age', EnumOperator::LessThen, 20)
+    ->where('age', EnumOperator::Beetwen, [20, 30])
+    ->addOrder('age', EnumSort::DESC)
     ->addOrder('name', EnumSort::ASC)
-    ->addOrder('age', EnumSort::ASC)
     ->run();
 die;
 

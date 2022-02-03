@@ -32,7 +32,7 @@ interface IndexInterface
 
     public function greaterThanOrEqual(string $key): array;
 
-    public function between(string $form, string $to): array;
+    public function between(string $from, string $to): array;
 
     public function printTree(): string;
 }
