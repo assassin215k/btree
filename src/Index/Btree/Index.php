@@ -391,7 +391,7 @@ class Index implements IndexInterface
             $child = array_slice($node->getKeys(), -1, 1);
         }
 
-        return $this->extract($this->search($key, $child));
+        return $this->search($key, $child);
     }
 
     /**

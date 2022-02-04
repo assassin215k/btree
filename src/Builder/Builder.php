@@ -285,6 +285,10 @@ class Builder implements BuilderInterface
                 break;
             }
 
+            if (count($index->getFields()) === count($fields)) {
+                return [$this->indexes[$key], $fields];
+            }
+
             if ($indexLength > $indexMaxLength) {
                 $indexMaxLength = $indexLength;
                 $indexKey = $key;

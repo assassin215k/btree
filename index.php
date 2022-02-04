@@ -35,7 +35,7 @@ for ($i = 5; $i < 1000; $i++) {
 
 Index::$nodeSize = 3;
 $collection = new IndexedCollection($data);
-//$collection->addIndex(['name', 'age']);
+$collection->addIndex(['name', 'age']);
 $collection->addIndex('age');
 $collection->addIndex('name');
 $collection->addIndex('country');
@@ -50,6 +50,7 @@ $collection->add(new Person('Sofia', 23));
 
 $builder = $collection->createBuilder();
 $builder->where('name', EnumOperator::Equal, 'Olga');
+$builder->andWhere('age', EnumOperator::Equal, 18);
 $result = $builder->run();
 
 
