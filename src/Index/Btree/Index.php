@@ -111,7 +111,7 @@ class Index implements IndexInterface
         }
 
         foreach ($this->fields as $field) {
-            if (!is_null($value->$field) && !isset($value->$field)) {
+            if (!property_exists($value, $field)) {
                 throw new MissedPropertyException($field, $value);
             }
 

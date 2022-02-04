@@ -2,6 +2,7 @@
 
 require_once 'vendor/autoload.php';
 
+use Btree\Builder\Builder;
 use Btree\Builder\Enum\EnumOperator;
 use Btree\Builder\Enum\EnumSort;
 use Btree\Index\Btree\Index;
@@ -26,29 +27,29 @@ $data = [
 //$data = [];
 $gender = [null, 0, 1];
 $countries = ["UA", "RU", "PL", "GB", "USA", null];
-for ($i = 5; $i < 1000; $i++) {
-    $data[] = new Person(
-        'User',
-$i % 60,
-//        rand(15, 50),
-        $gender[array_rand($gender, 1)],
-        $countries[array_rand($countries, 1)]
-    );
-}
+//for ($i = 5; $i < 1000; $i++) {
+//    $data[] = new Person(
+//        'User',
+//$i % 60,
+////        rand(15, 50),
+//        $gender[array_rand($gender, 1)],
+//        $countries[array_rand($countries, 1)]
+//    );
+//}
 
 Index::$nodeSize = 3;
 $collection = new IndexedCollection($data);
-$collection->addIndex(['name', 'age']);
-$collection->addIndex('age');
-$collection->addIndex('country');
+//$collection->addIndex(['name', 'age']);
+//$collection->addIndex('age');
+//$collection->addIndex('country');
 echo "=====", "\n";
 
-$collection->add(new Person('Sofia', 18));
-$collection->add(new Person('Sofia', 19));
-$collection->add(new Person('Sofia', 20));
-$collection->add(new Person('Sofia', 21));
-$collection->add(new Person('Sofia', 22));
-$collection->add(new Person('Sofia', 23));
+//$collection->add(new Person('Sofia', 18));
+//$collection->add(new Person('Sofia', 19));
+//$collection->add(new Person('Sofia', 20));
+//$collection->add(new Person('Sofia', 21));
+//$collection->add(new Person('Sofia', 22));
+//$collection->add(new Person('Sofia', 23));
 
 //$keys = array (
 //    0 => 'N>37',
@@ -75,10 +76,17 @@ $collection->add(new Person('Sofia', 23));
 //}
 //
 //die;
+$builder = $collection->createBuilder();
+$builder->where('name', EnumOperator::Equal, 'Olga');
+$builder->andWhere('age', EnumOperator::Between, [18, 10]);
+
+/** @var Person[] $result */
+$result = $builder->run();
+die;
 
 $result = $collection
     ->createBuilder()
-    ->where('age', EnumOperator::Beetwen, [20, 30])
+    ->where('age', EnumOperator::Between, [20, 30])
     ->addOrder('age', EnumSort::DESC)
     ->addOrder('name', EnumSort::ASC)
     ->run();
