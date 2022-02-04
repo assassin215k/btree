@@ -28,13 +28,20 @@ class NodeTest extends TestCase
 
         $this->keys = [
             'N3' => new Node(),
-            'K2' => $this->data,
+            'K2' => new Data(new \DateTime()),
             'N2' => new Node(),
             'K1' => $this->data,
             'N1' => new Node(),
         ];
 
         $this->node = new Node(false, $this->keys, 2, 3);
+    }
+
+    public function testGetKey()
+    {
+        $this->assertNull($this->node->getKey('K10'));
+        $this->assertInstanceOf(NodeInterface::class, $this->node->getKey('N2'));
+        $this->assertInstanceOf(DataInterface::class, $this->node->getKey('K2'));
     }
 
     public function testConstruct()
@@ -407,7 +414,6 @@ class NodeTest extends TestCase
         $node = $node->getKeys()[$keys[2]];
 
         $this->assertSame(['K17', 'K16', 'K15', 'K14'], array_keys($node->getKeys()));
-
 
 
         $keys = [

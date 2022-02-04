@@ -165,11 +165,12 @@ class Builder implements BuilderInterface
     public function run(): array
     {
         if (!count($this->where)) {
+            $data = $this->data;
             if (count($this->order)) {
-                $this->sortData($this->data);
+                $this->sortData($data);
             }
 
-            return $this->data;
+            return $data;
         }
 
         /** @var IndexInterface $index */

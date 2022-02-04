@@ -11,6 +11,7 @@ use Btree\Builder\Exception\InvalidConditionValueException;
 use Btree\Builder\Exception\MissedFieldValueException;
 use Btree\Index\Btree\Index;
 use Btree\Index\Btree\IndexInterface;
+use Btree\Index\Exception\MissedPropertyException;
 use Btree\Test\Index\Btree\Person;
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -88,6 +89,15 @@ class BuilderTest extends TestCase
         $builder = new Builder($indexes, $this->data);
         $builder->where('name', EnumOperator::Equal, 'Olga');
         $builder->andWhere('age', EnumOperator::Between, [20, 10]);
+
+        /** @var Person[] $result */
+        $result = $builder->run();
+        $this->assertSame(1, count($result));
+
+        $indexes = [];
+        $builder = new Builder($indexes, $this->data);
+        $builder->where('name', EnumOperator::Equal, 'Olga');
+        $builder->andWhere('age', EnumOperator::Between, [20, 28]);
 
         /** @var Person[] $result */
         $result = $builder->run();
@@ -235,7 +245,44 @@ class BuilderTest extends TestCase
         $builder->order('', EnumSort::DESC);
     }
 
-//    public function testRun()
-//    {
-//    }
+    public function testOrder()
+    {
+        $item = new Person('Olga', 18);
+        $data = [
+            $item,
+            new Person('Olga', 28)
+        ];
+        $indexes = [];
+        $builder = new Builder($indexes, $data);
+        $builder->order('name', EnumSort::DESC);
+        /** @var Person[] $result */
+        $result = $builder->run();
+
+        $this->assertSame(18, $result[0]->age);
+
+        $item = new Person('Olga', 18);
+        $data = [
+            $item,
+            new Person('Olga', 28)
+        ];
+        $indexes = [];
+        $builder = new Builder($indexes, $data);
+        $builder->order('name', EnumSort::ASC);
+        /** @var Person[] $result */
+        $result = $builder->run();
+
+        $this->assertSame(18, $result[0]->age);
+    }
+
+    public function testCheckField()
+    {
+        $data = [
+            new \DateTime()
+        ];
+        $indexes = [];
+        $builder = new Builder($indexes, $data);
+        $builder->where('name', EnumOperator::IsNull);
+        $this->expectException(MissedPropertyException::class);
+        $builder->run();
+    }
 }

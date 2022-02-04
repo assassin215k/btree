@@ -391,7 +391,7 @@ class Index implements IndexInterface
             $child = array_slice($node->getKeys(), -1, 1);
         }
 
-        return $this->search($key, $child);
+        return $this->extract($this->search($key, $child));
     }
 
     /**
@@ -548,40 +548,6 @@ class Index implements IndexInterface
         }
 
         return $firstKey;
-    }
-
-    /**
-     * @param array $keys
-     * @param string|null $key
-     * @param bool $include
-     *
-     * @return string|null
-     */
-    public static function getLastKey(array $keys, string $key = null, bool $include = false): ?string
-    {
-        if (is_null($key)) {
-            return array_key_last($keys);
-        }
-
-        $filtered = array_filter($keys, function ($k) use ($key, $include) {
-            if (!str_starts_with($k, IndexHelper::DATA_PREFIX)) {
-                return false;
-            }
-
-            return $include ? $k >= $key : $k > $key;
-        });
-
-        if (!count($filtered)) {
-            return null;
-        }
-
-        $lastKey = $filtered[array_key_last($filtered)];
-
-        if ($lastKey > $key) {
-            $lastKey = $keys[array_flip($keys)[$lastKey] + 1];
-        }
-
-        return $lastKey;
     }
 
     /**
