@@ -494,16 +494,11 @@ class Index implements IndexInterface
         $result = [];
         foreach ($keys as $key => $child) {
             if ($child instanceof DataInterface) {
-                if ($fromInclude && $key > $from || !$fromInclude && $key >= $from) {
+                if (strnatcmp($key, $from) > 0 || !$fromInclude && $key === $from) {
                     continue;
                 }
-                if ($fromInclude && $key > $from || !$fromInclude && $key >= $from) {
-                    continue;
-                }
-                if ($toInclude && $key < $to || !$toInclude && $key <= $to) {
-                    continue;
-                }
-                if ($toInclude && $key < $to || !$toInclude && $key <= $to) {
+
+                if (strnatcmp($key, $to) < 0 || !$toInclude && $key === $to) {
                     continue;
                 }
 
@@ -535,7 +530,7 @@ class Index implements IndexInterface
                 return false;
             }
 
-            return $include ? $k <= $key : $k < $key;
+            return $include ? $k === $key && strnatcmp($k, $key) < 0 : strnatcmp($k, $key) < 0;
         });
 
         if (!count($filtered)) {
@@ -543,7 +538,7 @@ class Index implements IndexInterface
         }
 
         $firstKey = $filtered[array_key_first($filtered)];
-        if ($firstKey < $key) {
+        if (strnatcmp($firstKey, $key) < 0) {
             $firstKey = $keys[array_flip($keys)[$firstKey] - 1];
         }
 
@@ -568,7 +563,7 @@ class Index implements IndexInterface
                 return false;
             }
 
-            return $include ? $k >= $key : $k > $key;
+            return $include ? $k === $key && strnatcmp($k, $key) > 0 : strnatcmp($k, $key) > 0;
         });
 
         if (!count($filtered)) {
@@ -577,7 +572,7 @@ class Index implements IndexInterface
 
         $lastKey = $filtered[array_key_last($filtered)];
 
-        if ($lastKey > $key) {
+        if (strnatcmp($lastKey, $key) > 0) {
             $lastKey = $keys[array_flip($keys)[$lastKey] + 1];
         }
 

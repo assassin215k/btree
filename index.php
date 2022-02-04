@@ -82,6 +82,8 @@ $result = $collection
     ->addOrder('age', EnumSort::DESC)
     ->addOrder('name', EnumSort::ASC)
     ->run();
+
+var_dump($result);
 die;
 
 

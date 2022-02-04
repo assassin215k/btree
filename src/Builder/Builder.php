@@ -241,10 +241,10 @@ class Builder implements BuilderInterface
                 }
 
                 if ($order === EnumSort::ASC) {
-                    return ($a->$field < $b->$field) ? -1 : 1;
+                    return strnatcmp($a->$field, $b->$field);
                 }
 
-                return ($a->$field > $b->$field) ? -1 : 1;
+                return strnatcmp($b->$field, $a->$field);
             }
 
             return 0;
@@ -307,8 +307,9 @@ class Builder implements BuilderInterface
             foreach ($whereArray as $field => $where) {
                 $this->checkField($item, $field);
 
+                $f = $item->$field;
                 if ($where['op'] === EnumOperator::IsNull) {
-                    if (is_null($item->$field)) {
+                    if (is_null($f)) {
                         continue;
                     }
 
@@ -317,41 +318,41 @@ class Builder implements BuilderInterface
 
                 switch ($where['op']) {
                     case EnumOperator::Equal:
-                        if ($item->$field === $where['val']) {
+                        if ($f === $where['val']) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::GreateThen:
-                        if ($item->$field <= $where['val']) {
+                        if (strnatcmp($f, $where['val']) < 1) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::GreateThenOrEqual:
-                        if ($item->$field < $where['val']) {
+                        if (strnatcmp($f, $where['val']) < 0) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::LessThen:
-                        if ($item->$field >= $where['val']) {
+                        if (strnatcmp($f, $where['val']) > 1) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::LessThenOrEqual:
-                        if ($item->$field > $where['val']) {
+                        if (strnatcmp($f, $where['val']) > 0) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::Beetwen:
-                        if ($item->$field > $where['val1'] && $item->$field > $where['val2']) {
+                        if (strnatcmp($f, $where['val1']) > 0 && strnatcmp($f, $where['val2']) > 0) {
                             return false;
                         }
 
-                        if ($item->$field < $where['val1'] && $item->$field < $where['val2']) {
+                        if (strnatcmp($f, $where['val1']) < 0 && strnatcmp($f, $where['val2']) < 0) {
                             return false;
                         }
                         break;

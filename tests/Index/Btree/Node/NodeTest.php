@@ -37,6 +37,12 @@ class NodeTest extends TestCase
         $this->node = new Node(false, $this->keys, 2, 3);
     }
 
+//    public function testBase()
+//    {
+//        var_dump(array_keys($this->node->getKeys()));
+//        die;
+//    }
+
     public function testConstruct()
     {
         $node = new Node();
@@ -220,27 +226,27 @@ class NodeTest extends TestCase
 
         $node->insertKey('K31', $this->data, 1);
         $keys = array_keys($node->getKeys());
-        $this->assertSame(['K4', 'K31', 'K3', 'K2', 'K1'], $keys);
+        $this->assertSame(['K31', 'K4', 'K3', 'K2', 'K1'], $keys);
 
         $node->insertKey('K10', $this->data, 4);
         $keys = array_keys($node->getKeys());
-        $this->assertSame(['K4', 'K31', 'K3', 'K2', 'K10', 'K1'], $keys);
+        $this->assertSame(['K31', 'K10', 'K4', 'K3', 'K2', 'K1'], $keys);
 
         $node->insertKey('K0', $this->data, 6);
         $keys = array_keys($node->getKeys());
-        $this->assertSame(['K4', 'K31', 'K3', 'K2', 'K10', 'K1', 'K0'], $keys);
+        $this->assertSame(['K31', 'K10', 'K4', 'K3', 'K2', 'K1', 'K0'], $keys);
 
         $node->insertKey('K20', $this->data);
         $keys = array_keys($node->getKeys());
-        $this->assertSame(['K4', 'K31', 'K3', 'K20', 'K2', 'K10', 'K1', 'K0'], $keys);
+        $this->assertSame(['K31', 'K20', 'K10', 'K4', 'K3', 'K2', 'K1', 'K0'], $keys);
 
         $node->insertKey('K', $this->data);
         $keys = array_keys($node->getKeys());
-        $this->assertSame(['K4', 'K31', 'K3', 'K20', 'K2', 'K10', 'K1', 'K0', 'K'], $keys);
+        $this->assertSame(['K31', 'K20', 'K10', 'K4', 'K3', 'K2', 'K1', 'K0', 'K'], $keys);
 
         $node->insertKey('K', $this->data);
         $keys = array_keys($node->getKeys());
-        $this->assertSame(['K4', 'K31', 'K3', 'K20', 'K2', 'K10', 'K1', 'K0', 'K'], $keys);
+        $this->assertSame(['K31', 'K20', 'K10', 'K4', 'K3', 'K2', 'K1', 'K0', 'K'], $keys);
     }
 
     public function testSearchKeyPrevTrue()

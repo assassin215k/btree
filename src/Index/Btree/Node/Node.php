@@ -187,7 +187,7 @@ final class Node implements NodeInterface
         if ($nodeTotal === 2) {
             $keyList = array_keys($keys);
 
-            return $keyList[1] < $key ? $keyList[0] : $keyList[2];
+            return strnatcmp($keyList[1], $key) > 0 ? $keyList[0] : $keyList[2];
         }
 
         $toMiddle = $nodeTotal % 2 ? $nodeTotal : $nodeTotal - 1;
@@ -200,7 +200,7 @@ final class Node implements NodeInterface
         $middle = array_slice($keys, $toMiddle, 1);
         $middleKey = array_key_first($middle);
 
-        if ($middleKey < $key) {
+        if (strnatcmp($middleKey, $key) < 0) {
             return $this->getChildNodeKey(
                 $key,
                 $newNodeTotal,
@@ -305,7 +305,7 @@ final class Node implements NodeInterface
         if ($prev) {
             $slicedKeys = array_slice($keys, 0, $offset - 1, preserve_keys: true);
 
-            if (array_key_last($slicedKeys) > $key) {
+            if (strnatcmp(array_key_last($slicedKeys), $key) > 0) {
                 $slicedKeys = array_slice($keys, $offset - 1, preserve_keys: true);
             }
 
@@ -313,7 +313,7 @@ final class Node implements NodeInterface
         }
 
         $slicedKeys = array_slice($keys, 1, $offset - 1, preserve_keys: true);
-        if (array_key_last($slicedKeys) < $key) {
+        if (strnatcmp(array_key_last($slicedKeys), $key) < 0) {
             $slicedKeys = array_slice($keys, $offset - 1, preserve_keys: true);
         }
 
@@ -367,7 +367,7 @@ final class Node implements NodeInterface
     {
         $i = 0;
         foreach (array_keys($this->keys) as $k) {
-            if ($k < $key) {
+            if (strnatcmp($k, $key) < 0) {
                 return $i;
             }
 
