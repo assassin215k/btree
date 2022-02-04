@@ -23,13 +23,17 @@ class Builder implements BuilderInterface
 {
     private array $where = [];
     private array $order = [];
+    private readonly array $indexes;
+    private readonly array $data;
 
     /**
      * @param IndexInterface[] $indexes
      * @param object[] $data
      */
-    public function __construct(private readonly array &$indexes, private readonly array &$data)
+    public function __construct(array &$indexes, array &$data)
     {
+        $this->indexes = $indexes;
+        $this->data = $data;
     }
 
     /**
@@ -78,7 +82,7 @@ class Builder implements BuilderInterface
                 $this->where[$field] = ['op' => $operator];
 
                 return $this;
-            case EnumOperator::Beetwen:
+            case EnumOperator::Between:
                 if (count($value) !== 2) {
                     throw new InvalidConditionValueException();
                 }
@@ -161,11 +165,12 @@ class Builder implements BuilderInterface
     public function run(): array
     {
         if (!count($this->where)) {
+            $data = $this->data;
             if (count($this->order)) {
-                $this->sortData($this->data);
+                $this->sortData($data);
             }
 
-            return $this->data;
+            return $data;
         }
 
         /** @var IndexInterface $index */
@@ -188,7 +193,7 @@ class Builder implements BuilderInterface
                 $lastOperator = $operator;
             }
 
-            if ($operator === EnumOperator::Beetwen) {
+            if ($operator === EnumOperator::Between) {
                 $key2 = $key . $this->where[$field]['val2'];
             }
             $key .= $operator === EnumOperator::IsNull ? IndexHelper::NULL : $this->where[$field]['val'];
@@ -210,13 +215,13 @@ class Builder implements BuilderInterface
             case EnumOperator::LessThenOrEqual:
                 $data = $index->lessThanOrEqual($key);
                 break;
-            case EnumOperator::GreateThen:
+            case EnumOperator::GreaterThen:
                 $data = $index->greaterThan($key);
                 break;
-            case EnumOperator::GreateThenOrEqual:
+            case EnumOperator::GreaterThenOrEqual:
                 $data = $index->greaterThanOrEqual($key);
                 break;
-            case EnumOperator::Beetwen:
+            case EnumOperator::Between:
                 $data = $index->between($key, $key2);
                 break;
         }
@@ -280,6 +285,10 @@ class Builder implements BuilderInterface
                 break;
             }
 
+            if (count($index->getFields()) === count($fields)) {
+                return [$this->indexes[$key], $fields];
+            }
+
             if ($indexLength > $indexMaxLength) {
                 $indexMaxLength = $indexLength;
                 $indexKey = $key;
@@ -318,18 +327,18 @@ class Builder implements BuilderInterface
 
                 switch ($where['op']) {
                     case EnumOperator::Equal:
-                        if ($f === $where['val']) {
+                        if ($f !== $where['val']) {
                             return false;
                         }
                         break;
 
-                    case EnumOperator::GreateThen:
+                    case EnumOperator::GreaterThen:
                         if (strnatcmp($f, $where['val']) < 1) {
                             return false;
                         }
                         break;
 
-                    case EnumOperator::GreateThenOrEqual:
+                    case EnumOperator::GreaterThenOrEqual:
                         if (strnatcmp($f, $where['val']) < 0) {
                             return false;
                         }
@@ -347,7 +356,7 @@ class Builder implements BuilderInterface
                         }
                         break;
 
-                    case EnumOperator::Beetwen:
+                    case EnumOperator::Between:
                         if (strnatcmp($f, $where['val1']) > 0 && strnatcmp($f, $where['val2']) > 0) {
                             return false;
                         }
@@ -373,7 +382,7 @@ class Builder implements BuilderInterface
      */
     private function checkField(object $item, string $field): void
     {
-        if (empty($item->$field)) {
+        if (!property_exists($item, $field)) {
             throw new MissedPropertyException($field, $item);
         }
     }

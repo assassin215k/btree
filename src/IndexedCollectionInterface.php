@@ -22,7 +22,7 @@ interface IndexedCollectionInterface
 
     public function delete(string $key): void;
 
-    public function printFirstIndex(): void;
+    public function printFirstIndex(): ?string;
 
     public function createBuilder(): BuilderInterface;
 }

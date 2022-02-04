@@ -34,6 +34,14 @@ class IndexTest extends TestCase
         ];
     }
 
+    public function testGetFields()
+    {
+        $fields = ['name', 'age'];
+        $index = new Index($fields);
+
+        $this->assertSame($fields, $index->getFields());
+    }
+
     public function testConstruct()
     {
         $index = new Index('asd');

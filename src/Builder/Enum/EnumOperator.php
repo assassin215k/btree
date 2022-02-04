@@ -14,8 +14,8 @@ enum EnumOperator
     case Equal;
     case LessThen;
     case LessThenOrEqual;
-    case GreateThen;
-    case GreateThenOrEqual;
-    case Beetwen;
+    case GreaterThen;
+    case GreaterThenOrEqual;
+    case Between;
     case IsNull;
 }

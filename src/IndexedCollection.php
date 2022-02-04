@@ -6,6 +6,7 @@ use Btree\Builder\Builder;
 use Btree\Builder\BuilderInterface;
 use Btree\Exception\IndexDuplicationException;
 use Btree\Exception\IndexMissingException;
+use Btree\Exception\InvalidIndexClassException;
 use Btree\Helper\IndexHelper;
 use Btree\Index\Btree\Index;
 use Btree\Index\Btree\IndexInterface;
@@ -45,19 +46,24 @@ class IndexedCollection implements IndexedCollectionInterface
 
     /**
      * @throws IndexDuplicationException
+     * @throws InvalidIndexClassException
      *
      * @param string|array $fieldName
      * @param IndexInterface|null $index
      */
     public function addIndex(string | array $fieldName, IndexInterface $index = null): void
     {
+        if (!$index) {
+            $index = new self::$defaultIndexClass($fieldName);
+
+            if (!$index instanceof IndexInterface) {
+                throw new InvalidIndexClassException();
+            }
+        }
+
         $indexKey = IndexHelper::getIndexName($fieldName);
         if (key_exists($indexKey, $this->indexes)) {
             throw new IndexDuplicationException($indexKey);
-        }
-
-        if (!$index) {
-            $index = new self::$defaultIndexClass($fieldName);
         }
 
         $this->indexes[$indexKey] = $index;
@@ -86,6 +92,11 @@ class IndexedCollection implements IndexedCollectionInterface
         unset($this->indexes[$indexKey]);
     }
 
+    /**
+     * @param object $item
+     *
+     * @return void
+     */
     public function add(object $item): void
     {
         $this->data[] = $item;
@@ -94,13 +105,23 @@ class IndexedCollection implements IndexedCollectionInterface
         }
     }
 
-    public function printFirstIndex(): void
+    /**
+     * @return string|null
+     */
+    public function printFirstIndex(): ?string
     {
         if (array_key_first($this->indexes)) {
-            echo $this->indexes[array_key_first($this->indexes)]->printTree();
+            return $this->indexes[array_key_first($this->indexes)]->printTree();
         }
+
+        return null;
     }
 
+    /**
+     * @param string|object|array $key
+     *
+     * @return void
+     */
     public function delete(string | object | array $key): void
     {
         foreach ($this->indexes as $index) {
@@ -114,14 +135,5 @@ class IndexedCollection implements IndexedCollectionInterface
     public function createBuilder(): BuilderInterface
     {
         return new self::$defaultBuilderClass($this->indexes, $this->data);
-    }
-
-    public function searchFirstIndex(string $key): array
-    {
-        if (array_key_first($this->indexes)) {
-            return $this->indexes[array_key_first($this->indexes)]->search($key);
-        }
-
-        return [];
     }
 }
