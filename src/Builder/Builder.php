@@ -69,7 +69,7 @@ class Builder implements BuilderInterface
      */
     public function andWhere(string $field, EnumOperator $operator, mixed $value = null): self
     {
-        if (empty($field)) {
+        if (!strlen($field)) {
             throw new EmptyFieldException();
         }
         if ($operator !== EnumOperator::IsNull && is_null($value)) {
@@ -148,7 +148,7 @@ class Builder implements BuilderInterface
      */
     public function addOrder(string $field, EnumSort $order): self
     {
-        if (empty($field)) {
+        if (!strlen($field)) {
             throw new EmptyFieldException();
         }
 

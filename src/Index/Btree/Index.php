@@ -45,7 +45,7 @@ class Index implements IndexInterface
         }
 
         foreach ($this->fields as $field) {
-            if (empty($field)) {
+            if (!strlen($field)) {
                 throw new MissedFieldException();
             }
         }
