@@ -316,9 +316,9 @@ class Builder implements BuilderInterface
             foreach ($whereArray as $field => $where) {
                 $this->checkField($item, $field);
 
-                $f = $item->$field;
+                $itemField = $item->$field;
                 if ($where['op'] === EnumOperator::IsNull) {
-                    if (is_null($f)) {
+                    if (is_null($itemField)) {
                         continue;
                     }
 
@@ -327,41 +327,41 @@ class Builder implements BuilderInterface
 
                 switch ($where['op']) {
                     case EnumOperator::Equal:
-                        if ($f !== $where['val']) {
+                        if ($itemField !== $where['val']) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::GreaterThen:
-                        if (strnatcmp($f, $where['val']) < 1) {
+                        if (strnatcmp($itemField, $where['val']) <= 0) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::GreaterThenOrEqual:
-                        if (strnatcmp($f, $where['val']) < 0) {
+                        if (strnatcmp($itemField, $where['val']) < 0) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::LessThen:
-                        if (strnatcmp($f, $where['val']) > 1) {
+                        if (strnatcmp($itemField, $where['val']) >= 0) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::LessThenOrEqual:
-                        if (strnatcmp($f, $where['val']) > 0) {
+                        if (strnatcmp($itemField, $where['val']) > 0) {
                             return false;
                         }
                         break;
 
                     case EnumOperator::Between:
-                        if (strnatcmp($f, $where['val1']) > 0 && strnatcmp($f, $where['val2']) > 0) {
+                        if (strnatcmp($itemField, $where['val']) > 0 && strnatcmp($itemField, $where['val2']) > 0) {
                             return false;
                         }
 
-                        if (strnatcmp($f, $where['val1']) < 0 && strnatcmp($f, $where['val2']) < 0) {
+                        if (strnatcmp($itemField, $where['val']) < 0 && strnatcmp($itemField, $where['val2']) < 0) {
                             return false;
                         }
                         break;

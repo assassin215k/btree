@@ -175,7 +175,7 @@ class NodeTest extends TestCase
 
         $this->assertSame(2, $node->keyTotal);
         $this->assertSame(3, $node->nodeTotal);
-        $this->assertSame('N2', $node->getChildNodeKey('K111'));
+        $this->assertSame('N3', $node->getChildNodeKey('K111'));
 
         $array = [
             'N12' => new Node(),
@@ -183,7 +183,7 @@ class NodeTest extends TestCase
             'N11' => new Node(),
         ];
 
-        $node->replaceKey($array, 'N2');
+        $node->replaceKey($array, 'N3');
         $this->assertSame(3, $node->keyTotal);
         $this->assertSame(4, $node->nodeTotal);
         $this->assertSame('N12', $node->getChildNodeKey('K111'));
@@ -207,7 +207,7 @@ class NodeTest extends TestCase
         $this->assertSame(5, $node->nodeTotal);
         $this->assertSame('N112', $node->getChildNodeKey('K1112'));
 
-        $this->assertSame('N3', $node->getChildNodeKey('K333'));
+        $this->assertSame('N112', $node->getChildNodeKey('K333'));
         $this->assertSame('N1', $node->getChildNodeKey('K0'));
 
         $node = new Node(false, ['K1' => new Node()], 0, 1);
@@ -225,11 +225,11 @@ class NodeTest extends TestCase
 
         $node = new Node(keys: $keys, keyTotal: 4);
 
-        $node->insertKey('K31', $this->data, 1);
+        $node->insertKey('K31', $this->data, 0);
         $keys = array_keys($node->getKeys());
         $this->assertSame(['K31', 'K4', 'K3', 'K2', 'K1'], $keys);
 
-        $node->insertKey('K10', $this->data, 4);
+        $node->insertKey('K10', $this->data, 1);
         $keys = array_keys($node->getKeys());
         $this->assertSame(['K31', 'K10', 'K4', 'K3', 'K2', 'K1'], $keys);
 

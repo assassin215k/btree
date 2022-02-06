@@ -528,7 +528,7 @@ class Index implements IndexInterface
                 return false;
             }
 
-            return $include ? $k === $key && strnatcmp($k, $key) < 0 : strnatcmp($k, $key) < 0;
+            return $include ? strnatcmp($k, $key) <= 0 : strnatcmp($k, $key) < 0;
         });
 
         if (!count($filtered)) {

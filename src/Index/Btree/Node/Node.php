@@ -187,7 +187,7 @@ final class Node implements NodeInterface
         if ($nodeTotal === 2) {
             $keyList = array_keys($keys);
 
-            return strnatcmp($keyList[1], $key) > 0 ? $keyList[0] : $keyList[2];
+            return strnatcmp($keyList[1], $key) < 0 ? $keyList[0] : $keyList[2];
         }
 
         $toMiddle = $nodeTotal % 2 ? $nodeTotal : $nodeTotal - 1;

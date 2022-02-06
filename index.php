@@ -2,6 +2,7 @@
 
 require_once 'vendor/autoload.php';
 
+use Btree\Builder\Builder;
 use Btree\Builder\Enum\EnumOperator;
 use Btree\Builder\Enum\EnumSort;
 use Btree\Index\Btree\Index;
@@ -9,9 +10,9 @@ use Btree\IndexedCollection;
 use Btree\Test\Index\Btree\Person;
 
 $data = [
-    new Person('Olga', 28),
-    new Person('Owen', 17),
-    new Person('Lisa', 44),
+    new Person('Olga', 28, country: 'PL'),
+    new Person('Owen', 17, country: 'RU'),
+    new Person('Lisa', 44, country: 'UA'),
     new Person('Alex', 31),
     new Person('Artur', 28),
     new Person('Ivan', 17),
@@ -23,7 +24,6 @@ $data = [
     new Person('Alex', 21),
 ];
 
-//$data = [];
 $gender = [null, 0, 1];
 $countries = ["UA", "RU", "PL", "GB", "USA", null];
 for ($i = 5; $i < 1000; $i++) {
@@ -35,7 +35,7 @@ for ($i = 5; $i < 1000; $i++) {
     );
 }
 
-Index::$nodeSize = 3;
+Index::$nodeSize = 10;
 $collection = new IndexedCollection($data);
 $collection->addIndex(['name', 'age']);
 $collection->addIndex('age');
@@ -50,14 +50,19 @@ $collection->add(new Person('Sofia', 21));
 $collection->add(new Person('Sofia', 22));
 $collection->add(new Person('Sofia', 23));
 
-$builder = $collection->createBuilder();
+//$result = $builder = $collection->createBuilder();
+//$builder->where('name', EnumOperator::Equal, 'Olga');
+//$builder->andWhere('age', EnumOperator::Equal, 18);
+//$result = $builder->run();
+
+$result = $builder = $collection->createBuilder();
 $builder->where('name', EnumOperator::Equal, 'Olga');
-$builder->andWhere('age', EnumOperator::Equal, 18);
+$builder->andWhere('age', EnumOperator::GreaterThenOrEqual, 18);
 $result = $builder->run();
 
 $result = $collection
     ->createBuilder()
-    ->where('age', EnumOperator::Beetwen, [20, 30])
+    ->where('age', EnumOperator::Between, [20, 30])
     ->addOrder('age', EnumSort::DESC)
     ->addOrder('name', EnumSort::ASC)
     ->run();
