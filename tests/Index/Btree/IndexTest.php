@@ -231,7 +231,6 @@ _______________N>User14
             $index->insert($person);
         }
 
-
         $tree = "
 _____
 __________N<Owen17
@@ -282,6 +281,37 @@ __________N>Owen17
         $index->delete(['name' => 'Artur', 'age' => 28]);
         $tree = "
 _____
+";
+        $this->assertSame($tree, $index->printTree());
+
+        $index->delete(['name' => 'Artur', 'post' => true]);
+    }
+
+    public function testDeleteFromNotLeaf()
+    {
+        Index::$nodeSize = 3;
+        $index = new Index(['name', 'age']);
+        foreach ($this->data as $person) {
+            $index->insert($person);
+        }
+
+
+        $tree = "
+_____
+__________N<Owen17
+__________N>Owen17
+__________N<Artur28
+__________N>Artur28
+";
+        $this->assertSame($tree, $index->printTree());
+
+        $index->delete(['name' => 'Artur', 'age' => 28]);
+
+        $tree = "
+_____
+__________N<Owen17
+__________N>Owen17
+__________N>Artur28
 ";
         $this->assertSame($tree, $index->printTree());
     }
@@ -521,5 +551,39 @@ _____
 
         $result = $index->between('K-50', 'K-60');
         $this->assertSame(0, count($result));
+
+        Index::$nodeSize = 20;
+        $index = new Index(['age']);
+        $data = $this->data;
+        for ($i = 5; $i < 5000; $i++) {
+            $data[] = new Person(
+                'User',
+                $i % 60,
+            );
+        }
+        foreach ($data as $person) {
+            $index->insert($person);
+        }
+
+        $result = $index->between('K-20', 'K-40');
+        $this->assertSame(1750, count($result));
+    }
+
+    public function testSearch()
+    {
+        Index::$nodeSize = 3;
+        $index = new Index(['age']);
+        foreach ($this->data as $person) {
+            $index->insert($person);
+        }
+
+        $result = $index->search('K-17');
+        $this->assertSame(2, count($result));
+
+        $result = $index->search('K-23');
+        $this->assertSame(0, count($result));
+
+        $result = $index->search('K-21');
+        $this->assertSame(1, count($result));
     }
 }

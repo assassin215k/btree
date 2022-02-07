@@ -99,12 +99,18 @@ class Index implements IndexInterface
         }
 
         if (is_array($value)) {
-            foreach ($this->fields as $field) {
-                if (!array_key_exists($field, $value)) {
+            $fields = array_flip($this->fields);
+            foreach ($value as $field => $fieldValue) {
+                if (!array_key_exists($field, $fields)) {
                     throw new MissedPropertyException($field, $value);
                 }
 
-                $key .= is_null($value[$field]) ? IndexHelper::NULL : $value[$field];
+                $key .= is_null($fieldValue) ? IndexHelper::NULL : $fieldValue;
+                unset($fields[$field]);
+            }
+
+            if (count($fields)) {
+                throw new MissedPropertyException(array_key_first($fields), $value);
             }
 
             return $key;
@@ -214,7 +220,11 @@ class Index implements IndexInterface
      */
     public function delete(string | object | array $target): bool
     {
-        $target = $this->getKey($target);
+        try {
+            $target = $this->getKey($target);
+        } catch (MissedPropertyException $e) {
+            return false;
+        }
 
         $success = (bool)$this->deleteFromNode($this->root, $target);
 
@@ -385,10 +395,6 @@ class Index implements IndexInterface
         $childKey = $node->getChildNodeKey($key);
         $child = $node->getKey($childKey);
 
-        if (is_null($child)) {
-            $child = array_slice($node->getKeys(), -1, 1);
-        }
-
         return $this->search($key, $child);
     }
 
@@ -490,19 +496,8 @@ class Index implements IndexInterface
         $result = [];
         foreach ($keys as $key => $child) {
             if ($child instanceof DataInterface) {
-                if (!is_null($from)) {
-                    if (!$fromInclude && $key === $to || strnatcmp($key, $from) < 0) {
-                        continue;
-                    }
-                }
-
-                if (!is_null($to)) {
-                    if (!$toInclude && $key === $to || strnatcmp($key, $to) > 0) {
-                        continue;
-                    }
-                }
-
                 $result[$key] = $child;
+
                 continue;
             }
 
