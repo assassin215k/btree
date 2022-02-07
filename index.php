@@ -26,21 +26,21 @@ $data = [
 
 $gender = [null, 0, 1];
 $countries = ["UA", "RU", "PL", "GB", "USA", null];
-//for ($i = 5; $i < 1000; $i++) {
-//    $data[] = new Person(
-//        'User',
-//        $i % 60,
-//        $gender[array_rand($gender, 1)],
-//        $countries[array_rand($countries, 1)]
-//    );
-//}
+for ($i = 5; $i < 1000; $i++) {
+    $data[] = new Person(
+        'User',
+        $i % 60,
+        $gender[array_rand($gender, 1)],
+        $countries[array_rand($countries, 1)]
+    );
+}
 
-Index::$nodeSize = 30;
+Index::$nodeSize = 3;
 $collection = new IndexedCollection($data);
 $collection->addIndex(['name', 'age']);
-$collection->addIndex('age');
-$collection->addIndex('name');
-$collection->addIndex('country');
+//$collection->addIndex('age');
+//$collection->addIndex('name');
+//$collection->addIndex('country');
 echo "=====", "\n";
 
 $collection->add(new Person('Sofia', 18));

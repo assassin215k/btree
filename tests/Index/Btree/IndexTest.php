@@ -240,8 +240,8 @@ __________N>Artur28
 ";
         $this->assertSame($tree, $index->printTree());
 
-        $index->delete(['name' => 'Olga', 'age' => 18]);
-        $index->delete(['name' => 'Olga', 'age' => 28]);
+        $this->assertTrue($index->delete(['name' => 'Olga', 'age' => 18]));
+        $this->assertTrue($index->delete(['name' => 'Olga', 'age' => 28]));
 
 
         $tree = "
@@ -253,21 +253,15 @@ __________N>Artur28
         $this->assertSame($tree, $index->printTree());
 
 
-        $index->delete(['name' => 'Olga', 'age' => 28]);
-        $index->delete(['name' => 'Olga', 'age' => 28]);
-        $index->delete(['name' => 'Olga', 'age' => 28]);
-        $tree = "
-_____
-__________N<Owen17
-__________N>Owen17
-__________N>Artur28
-";
+        $this->assertFalse($index->delete(['name' => 'Olga', 'age' => 28]));
+        $this->assertFalse($index->delete(['name' => 'Olga', 'age' => 28]));
+        $this->assertFalse($index->delete(['name' => 'Olga', 'age' => 28]));
         $this->assertSame($tree, $index->printTree());
 
 
-        $index->delete(['name' => 'Lisa', 'age' => 34]);
-        $index->delete(['name' => 'Owen', 'age' => 27]);
-        $index->delete(['name' => 'Peter', 'age' => 31]);
+        $this->assertTrue($index->delete(['name' => 'Lisa', 'age' => 34]));
+        $this->assertTrue($index->delete(['name' => 'Owen', 'age' => 27]));
+        $this->assertTrue($index->delete(['name' => 'Peter', 'age' => 31]));
         $tree = "
 _____
 __________N<Owen17
@@ -276,15 +270,16 @@ __________N>Owen17
         $this->assertSame($tree, $index->printTree());
 
 
-        $index->delete(['name' => 'Roman', 'age' => 44]);
-        $index->delete(['name' => 'Ivan', 'age' => 17]);
-        $index->delete(['name' => 'Artur', 'age' => 28]);
+        $this->assertTrue($index->delete(['name' => 'Roman', 'age' => 44]));
+        $this->assertTrue($index->delete(['name' => 'Ivan', 'age' => 17]));
+        $this->assertTrue($index->delete(['name' => 'Artur', 'age' => 28]));
         $tree = "
 _____
 ";
         $this->assertSame($tree, $index->printTree());
 
-        $index->delete(['name' => 'Artur', 'post' => true]);
+        $this->assertFalse($index->delete(['name' => 'Artur', 'post' => true]));
+        $this->assertFalse($index->delete(['name' => 'Artur']));
     }
 
     public function testDeleteFromNotLeaf()
