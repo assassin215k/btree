@@ -3,7 +3,7 @@
 namespace Btree\Helper;
 
 /**
- * Class Index
+ * Class IndexHelper
  *
  * Helpers for indexes
  *

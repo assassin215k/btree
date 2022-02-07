@@ -427,7 +427,7 @@ class Index implements IndexInterface
      */
     public function lessThan(string $key): array
     {
-        return $this->extract($this->searchRange(from: $key));
+        return $this->extract($this->searchRange(to: $key));
     }
 
     /**
@@ -438,7 +438,7 @@ class Index implements IndexInterface
     private function extract(array $dataArray): array
     {
         /** @var DataInterface $data */
-        return array_reduce($dataArray, function (?array $carry, $data) {
+        $return = array_reduce($dataArray, function (?array $carry, $data) {
             if (is_null($carry)) {
                 $carry = [];
             }
@@ -449,6 +449,8 @@ class Index implements IndexInterface
 
             return $carry;
         });
+
+        return is_null($return) ? [] : $return;
     }
 
     /**
@@ -474,16 +476,12 @@ class Index implements IndexInterface
         $keys = $node->getKeys();
         $keyList = array_keys($keys);
 
-        $firstKey = self::getFirstKey($keyList, $from, $fromInclude);
-        $lastKey = self::getFirstKey($keyList, $to, $fromInclude);
+        $firstKey = self::getFirstKey($keyList, $from, $fromInclude, $node->isLeaf());
+        $lastKey = self::getLastKey($keyList, $to, $toInclude, $node->isLeaf());
 
         $flippedKeys = array_flip($keyList);
-        $keys = array_slice($keys, !is_null($firstKey) ? $flippedKeys[$firstKey] : array_key_last($keyList));
-        if (!is_null($firstKey)) {
-            $keyList = array_keys($keys);
-            $flippedKeys = array_flip($keyList);
-            $keys = array_slice($keys, 0, $flippedKeys[$lastKey] + 1);
-        }
+        $keys = array_slice($keys, 0, is_null($firstKey) ? 0 : $flippedKeys[$firstKey] + 1, preserve_keys: true);
+        $keys = array_slice($keys, is_null($lastKey) ? count($keyList) : $flippedKeys[$lastKey], preserve_keys: true);
 
         if ($node->isLeaf()) {
             return $keys;
@@ -492,19 +490,24 @@ class Index implements IndexInterface
         $result = [];
         foreach ($keys as $key => $child) {
             if ($child instanceof DataInterface) {
-                if (strnatcmp($key, $from) > 0 || !$fromInclude && $key === $from) {
-                    continue;
+                if (!is_null($from)) {
+                    if (!$fromInclude && $key === $to || strnatcmp($key, $from) < 0) {
+                        continue;
+                    }
                 }
 
-                if (strnatcmp($key, $to) < 0 || !$toInclude && $key === $to) {
-                    continue;
+                if (!is_null($to)) {
+                    if (!$toInclude && $key === $to || strnatcmp($key, $to) > 0) {
+                        continue;
+                    }
                 }
 
                 $result[$key] = $child;
                 continue;
             }
 
-            $result = array_merge($result, $this->searchRange($from, $fromInclude, $to, $toInclude, $child));
+            $childResult = $this->searchRange($from, $fromInclude, $to, $toInclude, $child);
+            $result = array_merge($result, $childResult);
         }
 
         return $result;
@@ -514,13 +517,85 @@ class Index implements IndexInterface
      * @param array $keys
      * @param string|null $key
      * @param bool $include
+     * @param bool $isLeaf
      *
      * @return string|null
      */
-    public static function getFirstKey(array $keys, string $key = null, bool $include = false): ?string
-    {
+    public static function getFirstKey(
+        array $keys,
+        string $key = null,
+        bool $include = false,
+        bool $isLeaf = false
+    ): ?string {
         if (is_null($key)) {
-            return array_key_first($keys);
+            return $keys[array_key_last($keys)];
+        }
+
+        $filtered = array_filter($keys, function ($k) use ($key, $include) {
+            if (!str_starts_with($k, IndexHelper::DATA_PREFIX)) {
+                return null;
+            }
+
+            return $include ? strnatcmp($k, $key) >= 0 : strnatcmp($k, $key) > 0;
+        });
+
+        if (!count($filtered)) {
+            if ($isLeaf) {
+                return null;
+            }
+
+            return $keys[array_key_first($keys)];
+        }
+
+        $filteredKey = $filtered[array_key_last($filtered)];
+
+        return self::checkFilteredKey($isLeaf, $filteredKey, $key, $keys);
+    }
+
+    /**
+     * @param bool $isLeaf
+     * @param string $filteredKey
+     * @param string $key
+     * @param array $keys
+     *
+     * @return string
+     */
+    private static function checkFilteredKey(bool $isLeaf, string $filteredKey, string $key, array $keys): string
+    {
+        if ($isLeaf) {
+            return $filteredKey;
+        }
+
+        switch (strnatcmp($filteredKey, $key)) {
+            case -1:
+                $filteredKey = $keys[array_flip($keys)[$filteredKey] - 1];
+                break;
+            case 1:
+                $filteredKey = $keys[array_flip($keys)[$filteredKey] + 1];
+                break;
+            case 0:
+                break;
+        }
+
+        return $filteredKey;
+    }
+
+    /**
+     * @param array $keys
+     * @param string|null $key
+     * @param bool $include
+     * @param bool $isLeaf
+     *
+     * @return string|null
+     */
+    public static function getLastKey(
+        array $keys,
+        string $key = null,
+        bool $include = false,
+        bool $isLeaf = false
+    ): ?string {
+        if (is_null($key)) {
+            return $keys[array_key_first($keys)];
         }
 
         $filtered = array_filter($keys, function ($k) use ($key, $include) {
@@ -532,49 +607,16 @@ class Index implements IndexInterface
         });
 
         if (!count($filtered)) {
-            return null;
-        }
-
-        $firstKey = $filtered[array_key_first($filtered)];
-        if (strnatcmp($firstKey, $key) < 0) {
-            $firstKey = $keys[array_flip($keys)[$firstKey] - 1];
-        }
-
-        return $firstKey;
-    }
-
-    /**
-     * @param array $keys
-     * @param string|null $key
-     * @param bool $include
-     *
-     * @return string|null
-     */
-    public static function getLastKey(array $keys, string $key = null, bool $include = false): ?string
-    {
-        if (is_null($key)) {
-            return array_key_last($keys);
-        }
-
-        $filtered = array_filter($keys, function ($k) use ($key, $include) {
-            if (!str_starts_with($k, IndexHelper::DATA_PREFIX)) {
-                return false;
+            if ($isLeaf) {
+                return null;
             }
 
-            return $include ? $k === $key && strnatcmp($k, $key) > 0 : strnatcmp($k, $key) > 0;
-        });
-
-        if (!count($filtered)) {
-            return null;
+            return $keys[array_key_last($keys)];
         }
 
-        $lastKey = $filtered[array_key_last($filtered)];
+        $filteredKey = $filtered[array_key_first($filtered)];
 
-        if (strnatcmp($lastKey, $key) > 0) {
-            $lastKey = $keys[array_flip($keys)[$lastKey] + 1];
-        }
-
-        return $lastKey;
+        return self::checkFilteredKey($isLeaf, $filteredKey, $key, $keys);
     }
 
     /**
@@ -584,7 +626,7 @@ class Index implements IndexInterface
      */
     public function lessThanOrEqual(string $key): array
     {
-        return $this->extract($this->searchRange(from: $key, fromInclude: true));
+        return $this->extract($this->searchRange(to: $key, toInclude: true));
     }
 
     /**
@@ -594,7 +636,7 @@ class Index implements IndexInterface
      */
     public function greaterThan(string $key): array
     {
-        return $this->extract($this->searchRange(to: $key));
+        return $this->extract($this->searchRange(from: $key));
     }
 
     /**
@@ -604,7 +646,7 @@ class Index implements IndexInterface
      */
     public function greaterThanOrEqual(string $key): array
     {
-        return $this->extract($this->searchRange(to: $key, toInclude: true));
+        return $this->extract($this->searchRange(from: $key, fromInclude: true));
     }
 
     /**
@@ -615,6 +657,10 @@ class Index implements IndexInterface
      */
     public function between(string $from, string $to): array
     {
-        return $this->extract($this->searchRange(from: $from, fromInclude: true, to: $to, toInclude: true));
+        if ($from < $to) {
+            return $this->extract($this->searchRange(from: $from, fromInclude: true, to: $to, toInclude: true));
+        }
+
+        return $this->extract($this->searchRange(from: $to, fromInclude: true, to: $from, toInclude: true));
     }
 }

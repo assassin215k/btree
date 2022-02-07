@@ -10,6 +10,33 @@ use Btree\IndexedCollection;
 use Btree\Test\Index\Btree\Person;
 
 $data = [
+            new Person('Olga', 28),
+            new Person('Owen', 17),
+            new Person('Lisa', 44),
+            new Person('Alex', 31),
+            new Person('Artur', 28),
+            new Person('Ivan', 17),
+            new Person('Roman', 44),
+            new Person('Peter', 31),
+            new Person('Olga', 18),
+            new Person('Owen', 27),
+            new Person('Lisa', 34),
+            new Person('Alex', 21),
+];
+
+
+Index::$nodeSize = 3;
+$index = new Index(['age']);
+foreach ($data as $person) {
+    $index->insert($person);
+}
+
+$result = $index->lessThan('K-31');
+var_dump($result);
+die;
+
+
+$data = [
     new Person('Olga', 28, country: 'PL'),
     new Person('Owen', 17, country: 'RU'),
     new Person('Lisa', 44, country: 'UA'),
@@ -26,14 +53,14 @@ $data = [
 
 $gender = [null, 0, 1];
 $countries = ["UA", "RU", "PL", "GB", "USA", null];
-for ($i = 5; $i < 1000; $i++) {
-    $data[] = new Person(
-        'User',
-        $i % 60,
-        $gender[array_rand($gender, 1)],
-        $countries[array_rand($countries, 1)]
-    );
-}
+//for ($i = 5; $i < 1000; $i++) {
+//    $data[] = new Person(
+//        'User',
+//        $i % 60,
+//        $gender[array_rand($gender, 1)],
+//        $countries[array_rand($countries, 1)]
+//    );
+//}
 
 Index::$nodeSize = 10;
 $collection = new IndexedCollection($data);
@@ -50,22 +77,11 @@ $collection->add(new Person('Sofia', 21));
 $collection->add(new Person('Sofia', 22));
 $collection->add(new Person('Sofia', 23));
 
-//$result = $builder = $collection->createBuilder();
+$builder = $collection->createBuilder();
 //$builder->where('name', EnumOperator::Equal, 'Olga');
-//$builder->andWhere('age', EnumOperator::Equal, 18);
-//$result = $builder->run();
-
-$result = $builder = $collection->createBuilder();
-$builder->where('name', EnumOperator::Equal, 'Olga');
-$builder->andWhere('age', EnumOperator::GreaterThenOrEqual, 18);
+$builder->andWhere('age', EnumOperator::GreaterThen, 20);
+$builder->order('age', EnumSort::ASC);
 $result = $builder->run();
-
-$result = $collection
-    ->createBuilder()
-    ->where('age', EnumOperator::Between, [20, 30])
-    ->addOrder('age', EnumSort::DESC)
-    ->addOrder('name', EnumSort::ASC)
-    ->run();
 
 var_dump($result);
 die;
