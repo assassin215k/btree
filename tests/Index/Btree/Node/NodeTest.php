@@ -4,6 +4,7 @@ namespace Btree\Test\Index\Btree\Node;
 
 use Btree\Index\Btree\Node\Data\Data;
 use Btree\Index\Btree\Node\Data\DataInterface;
+use Btree\Index\Btree\Node\Exception\MissedKeysException;
 use Btree\Index\Btree\Node\Node;
 use Btree\Index\Btree\Node\NodeInterface;
 use Mockery;
@@ -27,7 +28,7 @@ class NodeTest extends TestCase
         $this->data->shouldReceive('add');
 
         $this->keys = [
-            'N3' => new Node(),
+            'N3' => new Node(keys: ['K90' => $this->data]),
             'K2' => new Data(new \DateTime()),
             'N2' => new Node(),
             'K1' => $this->data,
@@ -491,5 +492,14 @@ class NodeTest extends TestCase
         $result = $node->searchKeyPrev('K185', true);
 
         $this->assertArrayHasKey('K18', $result);
+    }
+
+    public function testGetFirstKeyInChain()
+    {
+        $this->assertSame('K90', $this->node->getFirstKeyInChain());
+
+        $node = new Node();
+        $this->expectException(MissedKeysException::class);
+        $node->getFirstKeyInChain();
     }
 }

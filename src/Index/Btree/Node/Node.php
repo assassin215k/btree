@@ -4,6 +4,7 @@ namespace Btree\Index\Btree\Node;
 
 use Btree\Index\Btree\Node\Data\Data;
 use Btree\Index\Btree\Node\Data\DataInterface;
+use Btree\Index\Btree\Node\Exception\MissedKeysException;
 
 /**
  * Class Node
@@ -447,11 +448,17 @@ final class Node implements NodeInterface
     /**
      * Return first Node or First Key if is a leaf
      *
+     * @throws MissedKeysException
+     *
      * @return string
      */
     public function getFirstKeyInChain(): string
     {
         if ($this->isLeaf) {
+            if (!$this->keyTotal) {
+                throw new MissedKeysException();
+            }
+
             return array_key_first($this->keys);
         }
 
