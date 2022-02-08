@@ -212,8 +212,6 @@ class Index implements IndexInterface
     }
 
     /**
-     * @throws MissedPropertyException
-     *
      * @param string|object|array $target
      *
      * @return bool false if key is not found
@@ -271,7 +269,9 @@ class Index implements IndexInterface
             return false;
         }
 
-        if ($child->count() < $this->degree) {
+        $count = $child->count();
+        $isLeaf = $child->isLeaf();
+        if ($isLeaf && $count < $this->degree || !$isLeaf && $count < $this->degree - 2) {
             $this->rebaseChildren($node, $child, $position);
         }
 
@@ -296,18 +296,14 @@ class Index implements IndexInterface
 
         /** @var NodeInterface $child */
         $child = $children[$keys[$keyIndexes[$key] + 1]];
-        $childChildren = $child->getKeys();
-        $firstKey = array_key_first($childChildren);
 
-        if ($childChildren[$firstKey] instanceof NodeInterface) {
-            $firstKey = array_slice(array_keys($childChildren), $keyIndexes[$key] - 1, 1)[0];
-        }
+        $firstKey = $child->getFirstKeyInChain();
 
         $value = [$firstKey => $this->deleteFromNode($child, $firstKey)];
 
         $node->replaceKey($value, $key, keyOnly: true);
 
-        if ($child->count() < $this->degree) {
+        if ($child->count() < $this->degree - 2) {
             $position = array_key_first(array_slice($keyIndexes, $keyIndexes[$key] + 1, 1));
             $this->rebaseChildren($node, $child, $position);
         }

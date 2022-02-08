@@ -125,6 +125,11 @@ final class Node implements NodeInterface
         return $this->hasKey($key) ? $this->keys[$key] : null;
     }
 
+    public function hasKey(string $key): bool
+    {
+        return array_key_exists($key, $this->keys);
+    }
+
     /**
      * @return bool
      */
@@ -351,11 +356,6 @@ final class Node implements NodeInterface
         $this->keyTotal++;
     }
 
-    public function hasKey(string $key): bool
-    {
-        return array_key_exists($key, $this->keys);
-    }
-
     /**
      * Search position for new value
      *
@@ -442,5 +442,19 @@ final class Node implements NodeInterface
         unset($this->keys[$key]);
 
         return $data;
+    }
+
+    /**
+     * Return first Node or First Key if is a leaf
+     *
+     * @return string
+     */
+    public function getFirstKeyInChain(): string
+    {
+        if ($this->isLeaf) {
+            return array_key_first($this->keys);
+        }
+
+        return $this->keys[array_key_first($this->keys)]->getFirstKeyInChain();
     }
 }

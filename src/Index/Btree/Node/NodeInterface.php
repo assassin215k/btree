@@ -55,4 +55,6 @@ interface NodeInterface
     public function getNextNode(): ?NodeInterface;
 
     public function setNextNode(?NodeInterface $node): void;
+
+    public function getFirstKeyInChain(): string;
 }
