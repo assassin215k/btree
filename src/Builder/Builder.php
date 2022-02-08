@@ -257,9 +257,9 @@ class Builder implements BuilderInterface
     }
 
     /**
-     * @return array
+     * @return array [IndexInterface, array<string>]
      */
-    private function selectIndex(): array
+    public function selectIndex(): array
     {
         $indexMaxLength = 0;
         $indexKey = null;

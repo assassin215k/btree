@@ -52,7 +52,7 @@ class BuilderTest extends TestCase
             new Person('Alex', 21),
         ];
         $this->index = new Index('name');
-        $this->indexes = [$this->index];
+        $this->indexes = ['name' => $this->index];
     }
 
     public function testWhereEmptyField()
@@ -284,5 +284,121 @@ class BuilderTest extends TestCase
         $builder->where('name', EnumOperator::IsNull);
         $this->expectException(MissedPropertyException::class);
         $builder->run();
+    }
+
+    public function testSelectIndex()
+    {
+        $data = [];
+        $indexes = [
+            'name-age' => new Index(['name', 'age']),
+            'name' => new Index(['name']),
+            'age' => new Index('age'),
+            'country' => new Index('country'),
+        ];
+        $builder = new Builder($indexes, $data);
+        $builder->where('name', EnumOperator::IsNull);
+        $result = $builder->selectIndex();
+        $this->assertSame($indexes['name'], $result[0]);
+        $this->assertSame(['name'], $result[1]);
+
+
+        $builder = new Builder($indexes, $data);
+        $builder->andWhere('name', EnumOperator::IsNull);
+        $builder->andWhere('age', EnumOperator::LessThen, 20);
+        $result = $builder->selectIndex();
+        $this->assertSame($indexes['name-age'], $result[0]);
+        $this->assertSame(['name', 'age'], $result[1]);
+
+
+        $builder = new Builder($indexes, $data);
+        $builder->andWhere('name', EnumOperator::Equal, 'Lisa');
+        $builder->andWhere('age', EnumOperator::LessThen, 20);
+        $builder->andWhere('country', EnumOperator::IsNull);
+        $result = $builder->selectIndex();
+        $this->assertSame($indexes['name-age'], $result[0]);
+        $this->assertSame(['name', 'age'], $result[1]);
+
+
+        $builder = new Builder($indexes, $data);
+        $builder->andWhere('country', EnumOperator::IsNull);
+        $builder->andWhere('name', EnumOperator::Equal, 'Lisa');
+        $builder->andWhere('age', EnumOperator::LessThen, 20);
+        $result = $builder->selectIndex();
+        $this->assertSame($indexes['name-age'], $result[0]);
+        $this->assertSame(['name', 'age'], $result[1]);
+
+
+        $builder = new Builder($indexes, $data);
+        $builder->andWhere('name', EnumOperator::Equal, 'Lisa');
+        $builder->andWhere('age', EnumOperator::LessThen, 20);
+        $builder->where('country', EnumOperator::IsNull);
+        $result = $builder->selectIndex();
+        $this->assertSame($indexes['country'], $result[0]);
+        $this->assertSame(['country'], $result[1]);
+    }
+
+    public function testRun()
+    {
+        foreach ($this->data as $item) {
+            $this->indexes['name']->insert($item);
+        }
+        $builder = new Builder($this->indexes, $this->data);
+        $builder->andWhere('name', EnumOperator::Equal, 'Lisa');
+        $builder->andWhere('age', EnumOperator::LessThen, 50);
+        $builder->andWhere('age', EnumOperator::GreaterThen, 10);
+        $builder->andWhere('age', EnumOperator::Between, [45, 15]);
+        /** @var Person[] $result */
+        $result = $builder->run();
+        $this->assertSame(2, count($result));
+
+        $builder = new Builder($this->indexes, $this->data);
+        $builder->andWhere('name', EnumOperator::Equal, 'Lisa');
+        $builder->andWhere('age', EnumOperator::LessThenOrEqual, 50);
+        $builder->andWhere('age', EnumOperator::GreaterThenOrEqual, 10);
+        $builder->andWhere('country', EnumOperator::IsNull);
+        $result = $builder->run();
+        $this->assertSame(1, count($result));
+        $this->assertSame(34, $result[0]->age);
+
+        $builder = new Builder($this->indexes, $this->data);
+        $builder->andWhere('name', EnumOperator::LessThenOrEqual, 'Roman');
+        $builder->andWhere('name', EnumOperator::LessThen, 'Sofia');
+        $builder->andWhere('age', EnumOperator::LessThenOrEqual, 50);
+        $builder->andWhere('name', EnumOperator::Between, ['A','Z']);
+        $result = $builder->run();
+
+        $this->assertSame(12, count($result));
+
+        $builder = new Builder($this->indexes, $this->data);
+        $builder->andWhere('name', EnumOperator::LessThenOrEqual, 'Roman');
+        $builder->andWhere('name', EnumOperator::LessThen, 'Sofia');
+        $builder->andWhere('age', EnumOperator::LessThenOrEqual, 50);
+        $result = $builder->run();
+
+        $this->assertSame(12, count($result));
+
+        $builder = new Builder($this->indexes, $this->data);
+        $builder->andWhere('name', EnumOperator::LessThenOrEqual, 'Roman');
+        $builder->andWhere('name', EnumOperator::LessThenOrEqual, 'Sofia');
+        $builder->andWhere('age', EnumOperator::LessThenOrEqual, 50);
+        $result = $builder->run();
+
+        $this->assertSame(12, count($result));
+
+        $builder = new Builder($this->indexes, $this->data);
+        $builder->andWhere('name', EnumOperator::LessThenOrEqual, 'Roman');
+        $builder->andWhere('name', EnumOperator::GreaterThen, 'A');
+        $builder->andWhere('age', EnumOperator::LessThenOrEqual, 50);
+        $result = $builder->run();
+
+        $this->assertSame(12, count($result));
+
+        $builder = new Builder($this->indexes, $this->data);
+        $builder->andWhere('name', EnumOperator::LessThenOrEqual, 'Roman');
+        $builder->andWhere('name', EnumOperator::GreaterThenOrEqual, 'A');
+        $builder->andWhere('age', EnumOperator::LessThenOrEqual, 50);
+        $result = $builder->run();
+
+        $this->assertSame(12, count($result));
     }
 }
