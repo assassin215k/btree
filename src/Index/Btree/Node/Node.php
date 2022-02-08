@@ -318,9 +318,9 @@ final class Node implements NodeInterface
             return $this->searchKeyPrev($key, $prev, $slicedKeys, intval($total / 2));
         }
 
-        $slicedKeys = array_slice($keys, 1, $offset - 1, preserve_keys: true);
-        if (strnatcmp(array_key_last($slicedKeys), $key) < 0) {
-            $slicedKeys = array_slice($keys, $offset - 1, preserve_keys: true);
+        $slicedKeys = array_slice($keys, 1, $offset, preserve_keys: true);
+        if (strnatcmp(array_key_last($slicedKeys), $key) > 0) {
+            $slicedKeys = array_slice($keys, $offset + 1, preserve_keys: true);
         }
 
         return $this->searchKeyPrev($key, $prev, $slicedKeys, intval($total / 2));

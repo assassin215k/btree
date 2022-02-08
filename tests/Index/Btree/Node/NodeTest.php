@@ -295,6 +295,52 @@ class NodeTest extends TestCase
         $this->assertSame(1, count($result));
         $this->assertSame('K-Owen17', array_key_first($result));
         $this->assertInstanceOf(DataInterface::class, array_pop($result));
+
+
+
+
+        $keys = [
+            'N>Sofia23' => new Node(
+                true,
+                [
+                    'K-Sofia22' => new Data(new \DateTime()),
+                    'K-Sofia21' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+            'K-Sofia20' => new Data(new \DateTime()),
+            'N>Sofia20' => new Node(
+                true,
+                [
+                    'K-Sofia19' => new Data(new \DateTime()),
+                    'K-Sofia18' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+            'K-Roman44' => new Data(new \DateTime()),
+            'N>Roman44' => new Node(
+                true,
+                [
+                    'K-Peter31' => new Data(new \DateTime()),
+                ],
+                1
+            ),
+            'K-Lisa44' => new Data(new \DateTime()),
+            'N>Owen17' => new Node(
+                true,
+                [
+                    'K-Alex31' => new Data(new \DateTime()),
+                    'K-Alex21' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+        ];
+        $node = new Node(isLeaf: false, keys: $keys, keyTotal: 3, nodeTotal: 4);
+
+        $result = $node->searchKeyPrev('K-Roman45', true);
+        $this->assertSame(1, count($result));
+        $this->assertSame('K-Roman44', array_key_first($result));
+        $this->assertInstanceOf(DataInterface::class, array_pop($result));
     }
 
     public function testSearchKeyPrevFalse()
@@ -324,6 +370,50 @@ class NodeTest extends TestCase
 
         $this->assertSame(1, count($result));
         $this->assertSame('K-Owen17', array_key_first($result));
+        $this->assertInstanceOf(DataInterface::class, array_pop($result));
+
+
+        $keys = [
+            'N>Sofia23' => new Node(
+                true,
+                [
+                    'K-Sofia22' => new Data(new \DateTime()),
+                    'K-Sofia21' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+            'K-Sofia20' => new Data(new \DateTime()),
+            'N>Sofia20' => new Node(
+                true,
+                [
+                    'K-Sofia19' => new Data(new \DateTime()),
+                    'K-Sofia18' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+            'K-Roman44' => new Data(new \DateTime()),
+            'N>Roman44' => new Node(
+                true,
+                [
+                    'K-Peter31' => new Data(new \DateTime()),
+                ],
+                1
+            ),
+            'K-Lisa44' => new Data(new \DateTime()),
+            'N>Owen17' => new Node(
+                true,
+                [
+                    'K-Alex31' => new Data(new \DateTime()),
+                    'K-Alex21' => new Data(new \DateTime()),
+                ],
+                2
+            ),
+        ];
+        $node = new Node(isLeaf: false, keys: $keys, keyTotal: 3, nodeTotal: 4);
+
+        $result = $node->searchKeyPrev('K-Ivan17', false);
+        $this->assertSame(1, count($result));
+        $this->assertSame('K-Lisa44', array_key_first($result));
         $this->assertInstanceOf(DataInterface::class, array_pop($result));
     }
 
