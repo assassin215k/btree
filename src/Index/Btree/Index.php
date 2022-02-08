@@ -303,7 +303,9 @@ class Index implements IndexInterface
 
         $node->replaceKey($value, $key, keyOnly: true);
 
-        if ($child->count() < $this->degree - 2) {
+        $count = $child->count();
+        $isLeaf = $child->isLeaf();
+        if ($isLeaf && $count < $this->degree || !$isLeaf && $count < $this->degree - 2) {
             $position = array_key_first(array_slice($keyIndexes, $keyIndexes[$key] + 1, 1));
             $this->rebaseChildren($node, $child, $position);
         }
@@ -411,11 +413,11 @@ class Index implements IndexInterface
             $tree .= PHP_EOL;
         }
 
-        $tree .= str_pad('', $level * 5, '_') . $key . PHP_EOL;
-
         foreach ($node->getKeys() as $key => $item) {
-            if ($item instanceof NodeInterface) {
-                $tree .= $this->printTree($item, $level, $key);
+            if ($item instanceof DataInterface) {
+                $tree .= str_pad('', $level * 5, '_') . $key . PHP_EOL;
+            } else {
+                $tree .= str_pad('', $level * 5, '_') . $key . PHP_EOL . $this->printTree($item, $level, $key);
             }
         }
 

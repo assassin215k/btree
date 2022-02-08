@@ -80,147 +80,29 @@ class IndexTest extends TestCase
 
         $index->insert($this->data[0]);
 
-        $print = "
-_____
-__________N<Owen17
-__________N>Owen17
-__________N<Artur28
-__________N>Artur28
-";
+        $print = '
+_____N<Owen17
+__________K-Roman44
+__________K-Peter31
+__________K-Owen27
+_____K-Owen17
+_____N>Owen17
+__________K-Olga28
+__________K-Olga18
+_____K-Lisa44
+_____N<Artur28
+__________K-Lisa34
+__________K-Ivan17
+_____K-Artur28
+_____N>Artur28
+__________K-Alex31
+__________K-Alex21
+';
 
         $this->assertSame($print, $index->printTree());
 
         $this->expectException(MissedPropertyException::class);
         $index->insert(new \DateTime());
-        //todo added check via search
-    }
-
-    public function testInsertLarge()
-    {
-        Index::$nodeSize = 10;
-        $data = [];
-        for ($i = 5; $i < 1000; $i++) {
-            $data[] = new Person('User', $i);
-        }
-
-        $index = new Index(['name', 'age']);
-        foreach ($data as $person) {
-            $index->insert($person);
-        }
-
-        $print = "
-_____
-__________N<User804
-_______________N<User984
-_______________N>User984
-_______________N>User974
-_______________N>User964
-_______________N>User954
-_______________N>User944
-_______________N>User934
-_______________N>User924
-_______________N>User914
-_______________N>User904
-_______________N>User894
-_______________N>User884
-_______________N>User874
-_______________N>User864
-_______________N>User854
-_______________N>User844
-_______________N>User834
-_______________N>User824
-_______________N>User814
-__________N>User804
-_______________N>User804
-_______________N>User794
-_______________N>User784
-_______________N>User774
-_______________N>User764
-_______________N>User754
-_______________N>User744
-_______________N>User734
-_______________N>User724
-_______________N>User714
-__________N>User704
-_______________N>User704
-_______________N>User694
-_______________N>User684
-_______________N>User674
-_______________N>User664
-_______________N>User654
-_______________N>User644
-_______________N>User634
-_______________N>User624
-_______________N>User614
-__________N>User604
-_______________N>User604
-_______________N>User594
-_______________N>User584
-_______________N>User574
-_______________N>User564
-_______________N>User554
-_______________N>User544
-_______________N>User534
-_______________N>User524
-_______________N>User514
-__________N>User504
-_______________N>User504
-_______________N>User494
-_______________N>User484
-_______________N>User474
-_______________N>User464
-_______________N>User454
-_______________N>User444
-_______________N>User434
-_______________N>User424
-_______________N>User414
-__________N>User404
-_______________N>User404
-_______________N>User394
-_______________N>User384
-_______________N>User374
-_______________N>User364
-_______________N>User354
-_______________N>User344
-_______________N>User334
-_______________N>User324
-_______________N>User314
-__________N>User304
-_______________N>User304
-_______________N>User294
-_______________N>User284
-_______________N>User274
-_______________N>User264
-_______________N>User254
-_______________N>User244
-_______________N>User234
-_______________N>User224
-_______________N>User214
-__________N>User204
-_______________N>User204
-_______________N>User194
-_______________N>User184
-_______________N>User174
-_______________N>User164
-_______________N>User154
-_______________N>User144
-_______________N>User134
-_______________N>User124
-_______________N>User114
-__________N>User104
-_______________N>User104
-_______________N>User94
-_______________N>User84
-_______________N>User74
-_______________N>User64
-_______________N>User54
-_______________N>User44
-_______________N>User34
-_______________N>User24
-_______________N>User14
-";
-
-        $this->assertSame($print, $index->printTree());
     }
 
     public function testDeleteFromLeaf()
@@ -231,27 +113,63 @@ _______________N>User14
             $index->insert($person);
         }
 
-        $tree = "
-_____
-__________N<Owen17
-__________N>Owen17
-__________N<Artur28
-__________N>Artur28
-";
+        $tree = '
+_____N<Owen17
+__________K-Roman44
+__________K-Peter31
+__________K-Owen27
+_____K-Owen17
+_____N>Owen17
+__________K-Olga28
+__________K-Olga18
+_____K-Lisa44
+_____N<Artur28
+__________K-Lisa34
+__________K-Ivan17
+_____K-Artur28
+_____N>Artur28
+__________K-Alex31
+__________K-Alex21
+';
         $this->assertSame($tree, $index->printTree());
 
         $this->assertTrue($index->delete(['name' => 'Olga', 'age' => 18]));
-        $this->assertTrue($index->delete(['name' => 'Olga', 'age' => 28]));
-
-
-        $tree = "
-_____
-__________N<Owen17
-__________N>Owen17
-__________N>Artur28
-";
+        $tree = '
+_____N<Owen17
+__________K-Roman44
+__________K-Peter31
+_____K-Owen27
+_____N>Owen17
+__________K-Owen17
+__________K-Olga28
+_____K-Lisa44
+_____N<Artur28
+__________K-Lisa34
+__________K-Ivan17
+_____K-Artur28
+_____N>Artur28
+__________K-Alex31
+__________K-Alex21
+';
         $this->assertSame($tree, $index->printTree());
 
+        $this->assertTrue($index->delete(['name' => 'Olga', 'age' => 28]));
+        $tree = '
+_____N<Owen17
+__________K-Roman44
+__________K-Peter31
+_____K-Owen27
+_____N>Owen17
+__________K-Owen17
+__________K-Lisa44
+__________K-Lisa34
+__________K-Ivan17
+_____K-Artur28
+_____N>Artur28
+__________K-Alex31
+__________K-Alex21
+';
+        $this->assertSame($tree, $index->printTree());
 
         $this->assertFalse($index->delete(['name' => 'Olga', 'age' => 28]));
         $this->assertFalse($index->delete(['name' => 'Olga', 'age' => 28]));
@@ -262,20 +180,28 @@ __________N>Artur28
         $this->assertTrue($index->delete(['name' => 'Lisa', 'age' => 34]));
         $this->assertTrue($index->delete(['name' => 'Owen', 'age' => 27]));
         $this->assertTrue($index->delete(['name' => 'Peter', 'age' => 31]));
-        $tree = "
-_____
-__________N<Owen17
-__________N>Owen17
-";
+        $tree = '
+_____N<Owen17
+__________K-Roman44
+__________K-Owen17
+_____K-Lisa44
+_____N>Owen17
+__________K-Ivan17
+__________K-Artur28
+__________K-Alex31
+__________K-Alex21
+';
         $this->assertSame($tree, $index->printTree());
-
 
         $this->assertTrue($index->delete(['name' => 'Roman', 'age' => 44]));
         $this->assertTrue($index->delete(['name' => 'Ivan', 'age' => 17]));
         $this->assertTrue($index->delete(['name' => 'Artur', 'age' => 28]));
-        $tree = "
-_____
-";
+        $tree = '
+_____K-Owen17
+_____K-Lisa44
+_____K-Alex31
+_____K-Alex21
+';
         $this->assertSame($tree, $index->printTree());
 
         $this->assertFalse($index->delete(['name' => 'Artur', 'post' => true]));
@@ -290,24 +216,41 @@ _____
             $index->insert($person);
         }
 
-
-        $tree = "
-_____
-__________N<Owen17
-__________N>Owen17
-__________N<Artur28
-__________N>Artur28
-";
+        $this->assertTrue($index->delete(['name' => 'Artur', 'age' => 28]));
+        $tree = '
+_____N<Owen17
+__________K-Roman44
+__________K-Peter31
+__________K-Owen27
+_____K-Owen17
+_____N>Owen17
+__________K-Olga28
+__________K-Olga18
+_____K-Lisa44
+_____N>Artur28
+__________K-Lisa34
+__________K-Ivan17
+__________K-Alex31
+__________K-Alex21
+';
         $this->assertSame($tree, $index->printTree());
 
-        $index->delete(['name' => 'Artur', 'age' => 28]);
-
-        $tree = "
-_____
-__________N<Owen17
-__________N>Owen17
-__________N>Artur28
-";
+        $this->assertTrue($index->delete(['name' => 'Lisa', 'age' => 44]));
+        $tree = '
+_____N<Owen17
+__________K-Roman44
+__________K-Peter31
+__________K-Owen27
+_____K-Owen17
+_____N>Owen17
+__________K-Olga28
+__________K-Olga18
+_____K-Lisa34
+_____N>Artur28
+__________K-Ivan17
+__________K-Alex31
+__________K-Alex21
+';
         $this->assertSame($tree, $index->printTree());
     }
 

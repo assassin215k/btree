@@ -8,6 +8,40 @@ use Btree\Builder\Enum\EnumSort;
 use Btree\Index\Btree\Index;
 use Btree\IndexedCollection;
 use Btree\Test\Index\Btree\Person;
+//
+//$data = [
+//    new Person('Olga', 28),
+//    new Person('Owen', 17),
+//    new Person('Lisa', 44),
+//    new Person('Alex', 31),
+//    new Person('Artur', 28),
+//    new Person('Ivan', 17),
+//    new Person('Roman', 44),
+//    new Person('Peter', 31),
+//    new Person('Olga', 18),
+//    new Person('Owen', 27),
+//    new Person('Lisa', 34),
+//    new Person('Alex', 21),
+//];
+//
+//Index::$nodeSize = 3;
+//$index = new Index(['name', 'age']);
+//foreach ($data as $person) {
+//    $index->insert($person);
+//}
+//
+//$tree = $index->printTree();
+//$index->delete(['name' => 'Olga', 'age' => 18]);
+//$index->delete(['name' => 'Olga', 'age' => 28]);
+//$index->delete(['name' => 'Lisa', 'age' => 34]);
+//$index->delete(['name' => 'Owen', 'age' => 27]);
+//$index->delete(['name' => 'Peter', 'age' => 31]);
+////$index->delete(['name' => 'Roman', 'age' => 44]);
+////$index->delete(['name' => 'Ivan', 'age' => 17]);
+////$index->delete(['name' => 'Artur', 'age' => 28]);
+//$tree = $index->printTree();
+//die;
+
 
 $data = [
     new Person('Olga', 28, country: 'PL'),
