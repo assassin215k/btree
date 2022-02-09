@@ -13,7 +13,7 @@ Writes with PSR12 support
 Via Composer
 
 ``` bash
-$ composer require assassin215k/btree:0.1
+$ composer require assassin215k/btree
 ```
 
 ## Create collection and index
