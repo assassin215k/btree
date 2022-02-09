@@ -2,10 +2,12 @@
 
 All Notable changes to `assassin215k/btree` will be documented in this file
 
-## 0.0.1 - 2022-01-14
+## 0.1.0 - 2022-02-09
+First release
 
 ### Added
-- Nothing
+- Search for Equal, LessThen, LessThenOrEqual, GreaterThen, GreaterThenOrEqual, Between and IsNull comparisons
+- Search and filter without any index added
 
 ### Deprecated
 - Nothing

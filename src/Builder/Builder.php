@@ -8,9 +8,8 @@ use Btree\Builder\Exception\EmptyFieldException;
 use Btree\Builder\Exception\InvalidConditionValueException;
 use Btree\Builder\Exception\MissedFieldValueException;
 use Btree\Helper\IndexHelper;
-use Btree\Index\Btree\IndexInterface;
-use Btree\Index\Btree\Node\Data\DataInterface;
 use Btree\Index\Exception\MissedPropertyException;
+use Btree\Index\IndexInterface;
 
 /**
  * Class Builder

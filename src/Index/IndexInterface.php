@@ -1,8 +1,7 @@
 <?php
 
-namespace Btree\Index\Btree;
+namespace Btree\Index;
 
-use Btree\Index\Btree\Node\Data\DataInterface;
 use Btree\Index\Btree\Node\NodeInterface;
 
 /**

@@ -8,6 +8,7 @@ use Btree\Index\Btree\Node\Node;
 use Btree\Index\Btree\Node\NodeInterface;
 use Btree\Index\Exception\MissedFieldException;
 use Btree\Index\Exception\MissedPropertyException;
+use Btree\Index\IndexInterface;
 
 /**
  * Class Index

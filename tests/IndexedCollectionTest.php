@@ -76,7 +76,7 @@ class IndexedCollectionTest extends TestCase
 
     public function testPrintFirstIndex()
     {
-        $index = \Mockery::mock('Btree\Index\Btree\IndexInterface');
+        $index = \Mockery::mock('Btree\Index\IndexInterface');
         $index->shouldReceive('insert');
         $index->shouldReceive('printTree')->andReturn('test');
         $data = [new Person('Olga', 28)];

@@ -3,17 +3,15 @@
 namespace Btree\Test\Builder;
 
 use Btree\Builder\Builder;
-use Btree\Builder\BuilderInterface;
 use Btree\Builder\Enum\EnumOperator;
 use Btree\Builder\Enum\EnumSort;
 use Btree\Builder\Exception\EmptyFieldException;
 use Btree\Builder\Exception\InvalidConditionValueException;
 use Btree\Builder\Exception\MissedFieldValueException;
 use Btree\Index\Btree\Index;
-use Btree\Index\Btree\IndexInterface;
 use Btree\Index\Exception\MissedPropertyException;
+use Btree\Index\IndexInterface;
 use Btree\Test\Index\Btree\Person;
-use Mockery;
 use PHPUnit\Framework\TestCase;
 
 /**

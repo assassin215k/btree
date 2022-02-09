@@ -3,7 +3,7 @@
 namespace Btree;
 
 use Btree\Builder\BuilderInterface;
-use Btree\Index\Btree\IndexInterface;
+use Btree\Index\IndexInterface;
 
 /**
  * Interface IndexedCollectionInterface

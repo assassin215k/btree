@@ -9,7 +9,7 @@ use Btree\Exception\IndexMissingException;
 use Btree\Exception\InvalidIndexClassException;
 use Btree\Helper\IndexHelper;
 use Btree\Index\Btree\Index;
-use Btree\Index\Btree\IndexInterface;
+use Btree\Index\IndexInterface;
 
 /**
  * Class IndexedCollection
@@ -33,7 +33,7 @@ class IndexedCollection implements IndexedCollectionInterface
      *
      * @param array $data to store original data
      */
-    public function __construct(private array $data, private readonly array $options = [])
+    public function __construct(private array $data = [], private readonly array $options = [])
     {
         if (key_exists('builderClass', $this->options)) {
             self::$defaultBuilderClass = $this->options['builderClass'];
