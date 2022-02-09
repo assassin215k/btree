@@ -1,25 +1,19 @@
 # Btree
 
-[![Latest Version](https://img.shields.io/github/release/assassin215k/btree.svg?style=flat-square)](https://github.com/assassin215k/btree/releases)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Coverage](https://img.shields.io/scrutinizer/coverage/g/assassin215k/btree?style=flat-square)](https://scrutinizer-ci.com/g/assassin215k/btree/?branch=master)
-[![Code Quality](https://img.shields.io/scrutinizer/quality/g/assassin215k/btree?style=flat-square)](https://scrutinizer-ci.com/g/assassin215k/btree/?branch=master)
-[![Build](https://img.shields.io/scrutinizer/build/g/assassin215k/btree?style=flat-square)](https://scrutinizer-ci.com/g/assassin215k/btree/?branch=master)
-[![Coverage Status](https://img.shields.io/coveralls/github/assassin215k/btree/dev?style=flat-square&color=lightgray&label=dev%20coverage)](https://coveralls.io/github/assassin215k/btree?branch=dev)
-[![Total Downloads](https://img.shields.io/packagist/dt/assassin215k/btree.svg?style=flat-square)](https://packagist.org/packages/assassin215k/btree)
-
-[![Code Intelligence Status](https://scrutinizer-ci.com/g/assassin215k/btree/badges/code-intelligence.svg?b=master)](https://scrutinizer-ci.com/code-intelligence)
+[![Latest Version](https://img.shields.io/github/release/assassin215k/btree.svg)](https://github.com/assassin215k/btree/releases)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
+[![codecov](https://codecov.io/gh/iceorb-com-ua/btree/branch/master/graph/badge.svg?token=WJLPALOI00&)](https://codecov.io/gh/iceorb-com-ua/btree/branch/master)
+[![Codecov](https://img.shields.io/codecov/c/github/iceorb-com-ua/btree/branch/dev?label=codecov%20dev&color=lightgray)](https://codecov.io/gh/iceorb-com-ua/btree/branch/dev)
+[![Total Downloads](https://img.shields.io/packagist/dt/assassin215k/btree.svg)](https://packagist.org/packages/assassin215k/btree)
 
 Provides btree-indexation for an object collection. Provide sorting, ordering and composite indexes.
 Writes with PSR12 support
-
-In development only
 
 ## Install
 Via Composer
 
 ``` bash
-$ composer require assassin215k/btree:dev-master
+$ composer require assassin215k/btree:0.1
 ```
 
 ## Create collection and index
