@@ -6,6 +6,7 @@ All Notable changes to `assassin215k/btree` will be documented in this file
 First release
 
 ### Added
+- Add Btree index as default index
 - Search for Equal, LessThen, LessThenOrEqual, GreaterThen, GreaterThenOrEqual, Between and IsNull comparisons
 - Search and filter without any index added
 
