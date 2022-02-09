@@ -1,8 +1,7 @@
 <?php
 
-namespace Assassin215k\Btree\Test;
+namespace Btree\Test;
 
-use Assassin215k\Btree\Btree;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -17,8 +16,6 @@ class BtreeTest extends TestCase
      */
     public function testTrueIsTrue()
     {
-        $btree = new Btree();
-        $this->assertSame('testme', $btree->echoPhrase('testme'));
         $this->assertTrue(true);
     }
 }

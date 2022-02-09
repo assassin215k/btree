@@ -34,3 +34,5 @@ composer.lock
 docs
 vendor
 *.cache
+
+/index.php

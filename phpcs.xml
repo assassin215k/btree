@@ -5,5 +5,5 @@
     <exclude-pattern>./tests/*</exclude-pattern>
     <exclude-pattern>./.github/*</exclude-pattern>
     <exclude-pattern>./build/*</exclude-pattern>
-    <rule ref="PSR21"/>
+    <rule ref="PSR12"/>
 </ruleset>

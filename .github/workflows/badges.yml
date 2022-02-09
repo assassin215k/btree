@@ -13,6 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
+
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
 
@@ -40,9 +45,10 @@ jobs:
       run: |
         composer global require php-coveralls/php-coveralls
         php vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
-#
-#
-#    - name: Upload Scrutinizer coverage
-#      uses: sudo-bot/action-scrutinizer@latest
-#      with:
-#        cli-args: "--format=php-clover build/logs/clover.xml"
+
+    - name: Upload coverage results to codecov.io
+      env:
+        Codecov Token: ${{ secrets.COVERALLS_TOKEN }}
+      run: |
+        curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov
+        ./codecov  --branch=${{ steps.extract_branch.outputs.branch }}
