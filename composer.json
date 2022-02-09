@@ -1,12 +1,12 @@
 {
-    "name": "assassin215k/btree",
+    "name": "iceorb-com-ua/btree",
     "description": "Btree collection indexing",
     "keywords": [
         "btree",
         "collection",
         "index"
     ],
-    "homepage": "https://github.com/assassin215k/btree",
+    "homepage": "https://github.com/iceorb-com-ua/btree",
     "license": "MIT",
     "authors": [
         {
